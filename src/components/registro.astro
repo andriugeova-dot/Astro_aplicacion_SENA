@@ -1,0 +1,327 @@
+---
+// src/components/registro.astro
+// Formulario de registro público. Llama a POST {PUBLIC_API_URL}/registro,
+// que SIEMPRE crea la cuenta con idRol = 1 (aprendiz) del lado del
+// backend (ver registroController.ts). Si sale bien, el backend ya
+// devuelve token + usuario, así que iniciamos sesión de una vez.
+const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:8002';
+
+---
+
+<div id="pantalla-registro">
+	<section class="panel-marca">
+		<div class="marca-contenido">
+			<span class="marca-eyebrow">SENA · Control de asistencia</span>
+			<h1 class="marca-titulo font-display">
+				Tu cupo en la<br /> lista empieza aquí.
+			</h1>
+			<p class="marca-texto">
+				Crea tu cuenta de aprendiz para consultar tus fichas, horarios y
+				el registro de tu asistencia.
+			</p>
+		</div>
+
+		<ul class="beneficios">
+			<li><i class="bi bi-check2-circle"></i> Consulta tu asistencia por asignatura</li>
+			<li><i class="bi bi-check2-circle"></i> Revisa el horario de tu ficha</li>
+			<li><i class="bi bi-check2-circle"></i> Un solo lugar para todo el proceso</li>
+		</ul>
+	</section>
+
+	<section class="panel-form">
+		<div class="tarjeta-registro">
+			<header class="tarjeta-header">
+				<h2 class="font-display">Crear cuenta</h2>
+				<p>Se registra como aprendiz. Los roles de instructor o admin los asigna un administrador.</p>
+			</header>
+
+			<div id="alerta-registro" class="alerta-registro d-none" role="alert"></div>
+
+			<form id="form-registro" novalidate>
+				<div class="row g-3 mb-3">
+					<div class="col-sm-6">
+						<label for="nombre" class="form-label">Nombre</label>
+						<input
+							type="text"
+							id="nombre"
+							name="nombre"
+							class="form-control"
+							placeholder="Juan"
+							autocomplete="given-name"
+							required
+						/>
+						<div class="invalid-feedback">Ingresa tu nombre.</div>
+					</div>
+					<div class="col-sm-6">
+						<label for="apellido" class="form-label">Apellido</label>
+						<input
+							type="text"
+							id="apellido"
+							name="apellido"
+							class="form-control"
+							placeholder="Pérez"
+							autocomplete="family-name"
+							required
+						/>
+						<div class="invalid-feedback">Ingresa tu apellido.</div>
+					</div>
+				</div>
+
+				<div class="mb-3">
+					<label for="correo" class="form-label">Correo</label>
+					<input
+						type="email"
+						id="correo"
+						name="correo"
+						class="form-control"
+						placeholder="nombre.apellido@sena.edu.co"
+						autocomplete="email"
+						required
+					/>
+					<div class="invalid-feedback">Ingresa un correo válido.</div>
+				</div>
+
+				<div class="mb-3">
+					<label for="password" class="form-label">Contraseña</label>
+					<div class="input-group has-validation">
+						<input
+							type="password"
+							id="password"
+							name="password"
+							class="form-control"
+							placeholder="Mínimo 6 caracteres"
+							autocomplete="new-password"
+							minlength="6"
+							required
+						/>
+						<button
+							class="btn btn-outline-secondary"
+							type="button"
+							id="btn-ver-password"
+							aria-label="Mostrar contraseña"
+						>
+							<i class="bi bi-eye" id="icono-ver-password"></i>
+						</button>
+						<div class="invalid-feedback">Debe tener al menos 6 caracteres.</div>
+					</div>
+				</div>
+
+				<div class="mb-3">
+					<label for="confirmar" class="form-label">Confirmar contraseña</label>
+					<input
+						type="password"
+						id="confirmar"
+						name="confirmar"
+						class="form-control"
+						placeholder="Repite la contraseña"
+						autocomplete="new-password"
+						required
+					/>
+					<div class="invalid-feedback" id="feedback-confirmar">Las contraseñas no coinciden.</div>
+				</div>
+
+				<button type="submit" class="btn btn-crear w-100" id="btn-crear">
+					<span id="texto-btn-crear">Crear cuenta</span>
+					<span
+						id="spinner-btn-crear"
+						class="spinner-border spinner-border-sm d-none"
+						role="status"
+						aria-hidden="true"
+					></span>
+				</button>
+			</form>
+
+			<p class="pie-login">
+				¿Ya tienes cuenta? <a href="/login">Inicia sesión</a>
+			</p>
+		</div>
+	</section>
+</div>
+
+
+
+<style>
+	#pantalla-registro {
+		min-height: 100vh;
+		display: grid;
+		grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+	}
+
+	/* ---------- Panel de marca ---------- */
+	.panel-marca {
+		position: relative;
+		overflow: hidden;
+		background: linear-gradient(160deg, var(--sena-tinta) 0%, var(--sena-tinta-suave) 55%, var(--sena-verde-oscuro) 130%);
+		color: #eef5ee;
+		padding: 4rem 3.5rem;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+	}
+
+	.marca-contenido {
+		max-width: 30rem;
+	}
+
+	.marca-eyebrow {
+		display: inline-block;
+		font-size: 0.75rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: #b9e7a0;
+		border: 1px solid rgba(185, 231, 160, 0.35);
+		padding: 0.35rem 0.75rem;
+		border-radius: 999px;
+		margin-bottom: 1.75rem;
+	}
+
+	.marca-titulo {
+		font-size: clamp(2rem, 3.2vw, 2.75rem);
+		line-height: 1.15;
+		font-weight: 600;
+		margin: 0 0 1.25rem;
+		color: #ffffff;
+	}
+
+	.marca-texto {
+		color: #cdddd0;
+		font-size: 1.02rem;
+		line-height: 1.6;
+		margin: 0;
+	}
+
+	.beneficios {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: grid;
+		gap: 0.85rem;
+		max-width: 24rem;
+	}
+
+	.beneficios li {
+		display: flex;
+		align-items: center;
+		gap: 0.65rem;
+		color: #d6e6d9;
+		font-size: 0.95rem;
+	}
+
+	.beneficios i {
+		color: var(--sena-verde);
+		font-size: 1.1rem;
+		flex-shrink: 0;
+	}
+
+	/* ---------- Panel de formulario ---------- */
+	.panel-form {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 2.5rem 1.5rem;
+		background: var(--sena-crema);
+	}
+
+	.tarjeta-registro {
+		width: 100%;
+		max-width: 26rem;
+		background: #ffffff;
+		border-radius: 16px;
+		padding: 2.5rem 2.25rem;
+		box-shadow: 0 20px 45px -25px rgba(12, 43, 35, 0.35);
+	}
+
+	.tarjeta-header h2 {
+		font-size: 1.5rem;
+		font-weight: 600;
+		margin-bottom: 0.35rem;
+	}
+
+	.tarjeta-header p {
+		color: #5c6b63;
+		font-size: 0.88rem;
+		line-height: 1.5;
+		margin-bottom: 1.75rem;
+	}
+
+	.form-label {
+		font-weight: 500;
+		font-size: 0.88rem;
+	}
+
+	.form-control:focus {
+		border-color: var(--sena-verde);
+		box-shadow: 0 0 0 0.2rem rgba(57, 169, 0, 0.18);
+	}
+
+	.btn-crear {
+		margin-top: 0.5rem;
+		background: var(--sena-verde);
+		border: none;
+		color: #ffffff;
+		font-weight: 600;
+		padding: 0.65rem 1rem;
+		border-radius: 8px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		transition: background-color 0.15s ease;
+	}
+
+	.btn-crear:hover,
+	.btn-crear:focus-visible {
+		background: var(--sena-verde-oscuro);
+		color: #ffffff;
+	}
+
+	.btn-crear:disabled {
+		opacity: 0.75;
+	}
+
+	.alerta-registro {
+		background: #fdecea;
+		color: #8a2f22;
+		border: 1px solid #f4c3bc;
+		border-radius: 8px;
+		padding: 0.65rem 0.85rem;
+		font-size: 0.88rem;
+		margin-bottom: 1.25rem;
+	}
+
+	.pie-login {
+		text-align: center;
+		font-size: 0.88rem;
+		color: #5c6b63;
+		margin: 1.75rem 0 0;
+	}
+
+	.pie-login a {
+		color: var(--sena-verde-oscuro);
+		font-weight: 500;
+		text-decoration: none;
+	}
+
+	.pie-login a:hover {
+		text-decoration: underline;
+	}
+
+	@media (max-width: 960px) {
+		#pantalla-registro {
+			grid-template-columns: 1fr;
+		}
+
+		.panel-marca {
+			padding: 2.75rem 1.75rem;
+			gap: 2rem;
+		}
+
+		.marca-titulo {
+			font-size: 1.85rem;
+		}
+
+		.beneficios {
+			display: none;
+		}
+	}
+</style>

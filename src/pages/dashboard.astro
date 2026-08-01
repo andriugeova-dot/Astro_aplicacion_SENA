@@ -1,0 +1,131 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Panel · Asistencias SENA">
+	<div class="dashboard-vacio">
+		<nav class="barra-superior">
+			<span class="marca font-display">Asistencias SENA</span>
+			<button id="btn-salir" class="btn btn-outline-danger btn-sm">
+				<i class="bi bi-box-arrow-right"></i> Cerrar sesión
+			</button>
+		</nav>
+
+		<main class="contenido">
+			<p class="eyebrow" id="eyebrow-rol">&nbsp;</p>
+			<h1 class="font-display" id="titulo-bienvenida">Cargando…</h1>
+			<p class="subtitulo">
+				Este es un punto de partida: aquí se conectarán los módulos de
+				fichas, aprendices y registro de asistencia.
+			</p>
+
+			<dl class="ficha-usuario">
+				<div>
+					<dt>Correo</dt>
+					<dd id="dato-correo">—</dd>
+				</div>
+				<div>
+					<dt>Rol</dt>
+					<dd id="dato-rol">—</dd>
+				</div>
+				<div>
+					<dt>ID de usuario</dt>
+					<dd id="dato-id">—</dd>
+				</div>
+			</dl>
+		</main>
+	</div>
+</Layout>
+
+<script>
+	import { exigirSesion, cerrarSesion, NOMBRES_ROL } from '../lib/auth.ts';
+
+	const sesion = exigirSesion();
+
+	if (sesion) {
+		const { usuario } = sesion;
+		const nombreRol = NOMBRES_ROL[usuario.idRol] ?? `Rol ${usuario.idRol}`;
+
+		document.getElementById('eyebrow-rol')!.textContent = nombreRol;
+		document.getElementById('titulo-bienvenida')!.textContent =
+			`Hola, ${usuario.nombre} ${usuario.apellido}`;
+		document.getElementById('dato-correo')!.textContent = usuario.correo;
+		document.getElementById('dato-rol')!.textContent = nombreRol;
+		document.getElementById('dato-id')!.textContent = String(usuario.idUsuario);
+
+		document.getElementById('btn-salir')!.addEventListener('click', () => {
+			cerrarSesion();
+			window.location.href = '/login';
+		});
+	}
+</script>
+
+<style>
+	.dashboard-vacio {
+		min-height: 100vh;
+		background: var(--sena-crema);
+	}
+
+	.barra-superior {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 1.1rem 2rem;
+		background: #ffffff;
+		border-bottom: 1px solid #e4e9e2;
+	}
+
+	.marca {
+		font-weight: 600;
+		color: var(--sena-verde-oscuro);
+	}
+
+	.contenido {
+		max-width: 40rem;
+		margin: 0 auto;
+		padding: 4rem 1.5rem;
+	}
+
+	.eyebrow {
+		text-transform: uppercase;
+		letter-spacing: 0.12em;
+		font-size: 0.75rem;
+		color: var(--sena-verde-oscuro);
+		font-weight: 600;
+		margin-bottom: 0.5rem;
+	}
+
+	h1 {
+		font-size: 2rem;
+		margin: 0 0 0.75rem;
+	}
+
+	.subtitulo {
+		color: #5c6b63;
+		line-height: 1.6;
+		margin-bottom: 2.5rem;
+	}
+
+	.ficha-usuario {
+		display: grid;
+		gap: 1.25rem;
+		background: #ffffff;
+		border: 1px solid #e4e9e2;
+		border-radius: 12px;
+		padding: 1.5rem 1.75rem;
+	}
+
+	.ficha-usuario dt {
+		font-size: 0.75rem;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: #8a978f;
+		margin-bottom: 0.15rem;
+	}
+
+	.ficha-usuario dd {
+		margin: 0;
+		font-size: 1rem;
+		font-weight: 500;
+	}
+</style>
