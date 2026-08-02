@@ -1,114 +1,59 @@
 ---
-import Navbar from '../components/navbarusuario.astro';
+import Navbar from "../components/navbarusuario.astro";
 
-interface Props {
-  title: string;
+interface NavLink{
+    text:string;
+    href:string;
 }
 
-const { title } = Astro.props;
-
-const navLinks = [
-  { text: 'Home', href: '/' },
-  { text: 'Registrate', href: '/registro' },
-  { text: 'Login', href: '/login', isButton: true }
-];
----
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>{title}</title>
-  </head>
-  <body>
-    <Navbar links={navLinks} />
-    <slot />
-  </body>
-</html>
-
-
-
-<!-- ---
-import Navbar from '../components/navbarusuario.astro';
-
-interface Props {
-  title: string;
-  navLinks?: { text: string; href: string; isButton?: boolean }[];
+interface Props{
+    title:string;
+    links?:NavLink[];
+    aprendiz?:any;
 }
 
-const { title, navLinks = [
-  { text: 'Home', href: '/' },
-  { text: 'Inscríbete', href: '/registro' },
-  { text: 'Login', href: '/login', isButton: true }
-] } = Astro.props;
+const {
+    title,
+    links = [],
+    aprendiz = { nombre: "", apellido: "" }
+} = Astro.props;
 ---
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
-    <meta name="generator" content={Astro.generator} />
-    <title>{title}</title>
-  </head>
-  <body>
-    <Navbar links={navLinks} />
-    <slot />
-  </body>
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"/>
+</head>
+
+<body>
+  <Navbar
+    links={links}
+    aprendiz={aprendiz}
+  />
+
+  <main>
+    <slot/>
+  </main>
+</body>
+
 </html>
 
 <style>
-  html,
-  body {
-    margin: 0;
-    width: 100%;
-    height: 100%;
-  }
+html,
+body{
+  margin:0;
+  padding:0;
+  background:#f4f7fb;
+  font-family:system-ui,sans-serif;
+}
+
+*{
+  box-sizing:border-box;
+}
 </style>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- ---
-import NavbarusuarioAstroComponent from "../components/navbarusuario.astro"
----
-<!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
-	</head>
-	<body>
-		<NavbarusuarioAstroComponent />
-		<slot />
-	</body>
-</html>
-
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
-</style> --> 
-
-
-

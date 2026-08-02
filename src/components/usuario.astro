@@ -1,188 +1,522 @@
 ---
-import Layout from '../layouts/Layout.astro';
+const { aprendiz } = Astro.props;
 ---
 
-  <main class="dashboard-container">
-    <div class="user-panel">
-      <aside class="user-sidebar">
-        <div class="decorative-lines"></div>
-        <div class="user-avatar">
-          <span class="avatar-text">U1</span>
-        </div>
-        <h2 class="user-name">Usuario 1</h2>
-        <p class="user-role">Aprendiz SENA</p>
-      </aside>
+<main class="dashboard">
 
-      <section class="user-content">
-        <div class="content-card info-card">
-          <div class="card-header">
-            <span class="icon">ℹ️</span>
-            <h3>Información</h3>
-          </div>
-          <div class="card-body">
-            <p>Bienvenido a tu panel. Aquí puedes visualizar tu información personal, estado de matrícula y novedades de tu programa de formación.</p>
-          </div>
+    <section class="welcome">
+        <div>
+            <h1>¡Bienvenido, {aprendiz.nombre}! 
+                 <i class="bi bi-person-check-fill"></i>
+            </h1>
+            <p>Consulta toda la información de tu proceso de formación.</p>
+        </div>
+    </section>
+
+    <section class="dashboard-grid">
+
+        <!-- Perfil -->
+        <aside class="profile-card">
+
+            <div class="profile-top"></div>
+
+            <div class="avatar">
+                <span>
+                    {aprendiz.nombre.charAt(0)}
+                    {aprendiz.apellido.charAt(0)}
+                </span>
+            </div>
+
+            <h2>{aprendiz.nombre} {aprendiz.apellido}</h2>
+
+            <p>Aprendiz SENA</p>
+
+            <div class="divider"></div>
+
+            <div class="info">
+
+                <div class="item">
+                    <span>Documento</span>
+                    <strong>{aprendiz.documento}</strong>
+                </div>
+
+                <div class="item">
+                    <span>Correo</span>
+                    <strong>{aprendiz.correo}</strong>
+                </div>
+
+                <div class="item">
+                    <span>Teléfono</span>
+                    <strong>{aprendiz.telefono}</strong>
+                </div>
+
+                <div class="item">
+                     <span>Ficha</span>
+                    <strong>{aprendiz.numeroFicha}</strong>
+                </div>
+
+                <div class="item">
+                    <span>Programa</span>
+                    <strong>{aprendiz.programa}</strong>
+                </div>
+
+
+            </div>
+
+        </aside>
+
+        <!-- Contenido -->
+        <section class="content">
+
+            <div class="card">
+
+                <h3>Información General</h3>
+
+                <p>
+                    Bienvenido a tu panel de aprendizaje.
+                    Desde aquí podrás consultar tu información,
+                    asignaturas, novedades y próximamente tu horario.
+                </p>
+
+                <div class="features">
+
+                    <button type="button" class="feature" id="btn-info-personal">
+                        👤 Información Personal
+                    </button>
+
+                    <div class="feature">📚 Asignaturas</div>
+
+                </div>
+
+            </div>
+
+            <div class="card empty">
+
+                <div class="calendar">
+                    📅
+                </div>
+
+                <h3>Horario</h3>
+
+                <p>
+                    Próximamente podrás visualizar aquí tu horario de formación.
+                </p>
+
+            </div>
+
+            <div class="card">
+
+                <h3>Próximamente</h3>
+
+                <ul>
+
+                    <li>Notificaciones</li>
+
+                    <li>Asignaturas</li>
+
+                    <li>Calificaciones</li>
+
+                    <li>Asistencia</li>
+
+                    <li>Seguimiento de formación</li>
+
+                </ul>
+
+            </div>
+
+        </section>
+
+    </section>
+
+</main>
+
+
+<dialog id="modal-info-personal" class="modal">
+
+    <form method="dialog" class="modal-form" id="form-info-personal">
+
+        <div class="modal-header">
+            <h3>Editar información personal</h3>
+            <button type="button" class="close-btn" id="close-modal">
+                <i class="bi bi-x-lg"></i>
+            </button>
         </div>
 
-        <div class="content-card schedule-card">
-          <div class="card-header">
-            <span class="icon">📅</span>
-            <h3>Horario</h3>
-          </div>
-          <div class="card-body">
-            <p>Consulta tus ambientes de aprendizaje, competencias y los instructores asignados a tu ficha.</p>
-            <ul class="schedule-list">
-              <li><strong>Lunes 8:00 AM</strong> - Programación Web (Ambiente 101)</li>
-              <li><strong>Martes 10:00 AM</strong> - Bases de Datos (Ambiente 204)</li>
-            </ul>
-          </div>
+        <div class="modal-body">
+
+            <label>
+                <span>Nombre</span>
+                <input type="text" name="nombre" value={aprendiz.nombre} required />
+            </label>
+
+            <label>
+                <span>Apellido</span>
+                <input type="text" name="apellido" value={aprendiz.apellido} disabled />
+            </label>
+
+            <label>
+                <span>Documento</span>
+                <input type="text" name="documento" value={aprendiz.documento} disabled />
+            </label>
+
+            <label>
+                <span>Correo</span>
+                <input type="email" name="correo" value={aprendiz.correo} disabled />
+            </label>
+
+            <label>
+                <span>Teléfono</span>
+                <input type="tel" name="telefono" value={aprendiz.telefono} required />
+            </label>
+
         </div>
-      </section>
-    </div>
-  </main>
+
+        <div class="modal-footer">
+            <button type="button" id="cancel-btn" class="btn-secondary">Cancelar</button>
+            <button type="submit" class="btn-primary">Guardar cambios</button>
+        </div>
+
+    </form>
+
+</dialog>
+
+<script define:vars={{ aprendizId: aprendiz.id }}>
+
+    const modal = document.getElementById("modal-info-personal");
+    const openBtn = document.getElementById("btn-info-personal");
+    const closeBtn = document.getElementById("close-modal");
+    const cancelBtn = document.getElementById("cancel-btn");
+    const form = document.getElementById("form-info-personal");
+
+    openBtn.addEventListener("click", () => {
+        modal.showModal();
+    });
+
+    closeBtn.addEventListener("click", () => {
+        modal.close();
+    });
+
+    cancelBtn.addEventListener("click", () => {
+        modal.close();
+    });
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+        const nombre = formData.get("nombre");
+        const telefono = formData.get("telefono");
+
+        try {
+            const res = await fetch(`/api/aprendiz/${aprendizId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nombre, telefono })
+            });
+
+            if (!res.ok) {
+                throw new Error("No se pudo actualizar");
+            }
+
+            // recarga la página para reflejar los cambios
+            window.location.reload();
+
+        } catch (err) {
+            alert("Ocurrió un error al guardar los cambios.");
+            console.error(err);
+        }
+    });
+
+</script>
 
 <style>
-  .dashboard-container {
-    max-width: 1000px;
-    margin: 3rem auto;
-    padding: 0 1.5rem;
-  }
 
-  .user-panel {
-    display: flex;
-    flex-direction: column;
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-    overflow: hidden;
-  }
+.dashboard{
+    max-width:1300px;
+    margin:auto;
+    padding:40px 20px;
+}
 
-  @media (min-width: 768px) {
-    .user-panel {
-      flex-direction: row;
-      min-height: 450px;
-    }
-  }
+.welcome{
+    margin-bottom:30px;
+}
 
-  .user-sidebar {
-    background-color: #f9fafb;
-    padding: 3rem 2rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    border-right: 1px solid #eaeaea;
-    position: relative;
-    min-width: 280px;
-  }
+.welcome h1{
+    font-size:2rem;
+    color:#1f2937;
+    margin-bottom:8px;
+}
 
-  .decorative-lines {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 8px;
-    background: repeating-linear-gradient(
-      45deg,
-      #39A900,
-      #39A900 15px,
-      #ffffff 15px,
-      #ffffff 20px
-    );
-  }
+.welcome p{
+    color:#6b7280;
+}
 
-  .user-avatar {
-    width: 100px;
-    height: 100px;
-    background-color: #39A900;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 2.5rem;
-    font-weight: bold;
-    margin-bottom: 1rem;
-    box-shadow: 0 4px 15px rgba(57, 169, 0, 0.2);
-  }
+.dashboard-grid{
+    display:grid;
+    grid-template-columns:300px 1fr;
+    gap:30px;
+}
 
-  .user-name {
-    color: #333;
-    font-size: 1.5rem;
-    margin-bottom: 0.25rem;
-  }
+.profile-card{
+    background:white;
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:0 15px 40px rgba(0,0,0,.06);
+}
 
-  .user-role {
-    color: #666;
-    font-size: 0.95rem;
-    font-weight: 500;
-  }
+.profile-top{
+    height:90px;
+    background:linear-gradient(135deg,#39A900,#2e7d32);
+}
 
-  .user-content {
-    flex: 1;
-    padding: 2.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-    background-color: #ffffff;
-  }
+.avatar{
+    width:110px;
+    height:110px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#39A900,#2e7d32);
+    margin:-55px auto 15px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color:white;
+    font-size:2.2rem;
+    font-weight:bold;
+    border:5px solid white;
+}
 
-  .content-card {
-    border: 1px solid #eaeaea;
-    border-radius: 8px;
-    padding: 1.5rem;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
+.profile-card h2{
+    text-align:center;
+    color:#1f2937;
+    margin-bottom:8px;
+}
 
-  .content-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.06);
-  }
+.profile-card p{
+    text-align:center;
+    color:#6b7280;
+}
 
-  .info-card {
-    border-left: 4px solid #39A900;
-  }
+.divider{
+    height:1px;
+    background:#e5e7eb;
+    margin:25px;
+}
 
-  .schedule-card {
-    border-left: 4px solid #0078D4;
-  }
+.info{
+    padding:0 25px 25px;
+}
 
-  .card-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-    border-bottom: 1px solid #f0f0f0;
-    padding-bottom: 0.75rem;
-  }
+.item{
+    display:flex;
+    justify-content:space-between;
+    padding:14px 0;
+    border-bottom:1px solid #f3f4f6;
+}
 
-  .card-header h3 {
-    color: #2c3e50;
-    font-size: 1.3rem;
-    margin: 0;
-  }
+.item:last-child{
+    border:none;
+}
 
-  .card-body p {
-    color: #555;
-    line-height: 1.6;
-    margin-bottom: 1rem;
-  }
+.item span{
+    color:#6b7280;
+}
 
-  .schedule-list {
-    list-style: none;
-    padding: 0;
-  }
+.item strong{
+    color:#39A900;
+}
 
-  .schedule-list li {
-    background-color: #f8f9fa;
-    padding: 0.85rem 1rem;
-    border-radius: 6px;
-    margin-bottom: 0.5rem;
-    color: #444;
-    font-size: 0.95rem;
-    border-left: 3px solid #e9ecef;
-  }
+.content{
+    display:flex;
+    flex-direction:column;
+    gap:25px;
+}
 
-  .schedule-list li strong {
-    color: #39A900;
-  }
+.card{
+    background:white;
+    border-radius:18px;
+    padding:28px;
+    box-shadow:0 15px 40px rgba(0,0,0,.05);
+}
+
+.card h3{
+    margin-bottom:18px;
+    color:#1f2937;
+}
+
+.card p{
+    color:#6b7280;
+    line-height:1.7;
+}
+
+.features{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:15px;
+    margin-top:25px;
+}
+
+.feature{
+    background:#f8fafc;
+    padding:18px;
+    border-radius:12px;
+    border:none;
+    border-left:5px solid #39A900;
+    transition:.25s;
+    cursor:pointer;
+    text-align:left;
+    font-size:1rem;
+    font-family:inherit;
+    color:#1f2937;
+    appearance:none;
+    -webkit-appearance:none;
+    outline:none;
+    display:block;
+    width:100%;
+}
+
+.feature:focus-visible{
+    box-shadow:0 0 0 2px #39A900;
+}
+
+.feature:hover{
+    transform:translateY(-4px);
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+.empty{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+}
+
+.calendar{
+    font-size:4rem;
+    margin-bottom:20px;
+}
+
+.card ul{
+    margin-top:15px;
+    padding-left:20px;
+    color:#4b5563;
+}
+
+.card li{
+    margin-bottom:12px;
+}
+
+/* Modal */
+.modal{
+    border:none;
+    border-radius:18px;
+    padding:0;
+    width:420px;
+    max-width:90vw;
+    box-shadow:0 20px 60px rgba(0,0,0,.2);
+}
+
+.modal::backdrop{
+    background:rgba(0,0,0,.5);
+}
+
+.modal-form{
+    display:flex;
+    flex-direction:column;
+}
+
+.modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:20px 25px;
+    border-bottom:1px solid #e5e7eb;
+}
+
+.modal-header h3{
+    color:#1f2937;
+    margin:0;
+}
+
+.close-btn{
+    background:none;
+    border:none;
+    cursor:pointer;
+    color:#6b7280;
+    font-size:1.1rem;
+}
+
+.modal-body{
+    padding:20px 25px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+}
+
+.modal-body label{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    font-size:.85rem;
+    color:#6b7280;
+}
+
+.modal-body input{
+    padding:10px 12px;
+    border-radius:8px;
+    border:1px solid #d1d5db;
+    font-size:.95rem;
+}
+
+.modal-body input:disabled{
+    background:#f3f4f6;
+    color:#9ca3af;
+}
+
+.modal-body input:focus{
+    outline:none;
+    border-color:#39A900;
+}
+
+.modal-footer{
+    display:flex;
+    justify-content:flex-end;
+    gap:12px;
+    padding:18px 25px;
+    border-top:1px solid #e5e7eb;
+}
+
+.btn-secondary{
+    padding:10px 18px;
+    border-radius:8px;
+    border:1px solid #d1d5db;
+    background:white;
+    color:#374151;
+    cursor:pointer;
+}
+
+.btn-primary{
+    padding:10px 18px;
+    border-radius:8px;
+    border:none;
+    background:#39A900;
+    color:white;
+    cursor:pointer;
+    font-weight:600;
+}
+
+.btn-primary:hover{
+    background:#2e7d32;
+}
+
+@media(max-width:900px){
+
+.dashboard-grid{
+    grid-template-columns:1fr;
+}
+
+.features{
+    grid-template-columns:1fr;
+}
+
+}
+
 </style>
