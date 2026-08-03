@@ -19,13 +19,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:8002';
 			</p>
 		</div>
 
-		<div class="roster" aria-hidden="true">
-			{
-				Array.from({ length: 48 }).map((_, i) => (
-					<span class="roster-celda" style={`--i:${i}`} />
-				))
-			}
-		</div>
+
 	</section>
 
 	<section class="panel-form">
@@ -77,7 +71,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:8002';
 				</div>
 
 				<button type="submit" class="btn btn-entrar w-100" id="btn-entrar">
-					<span id="texto-btn-entrar">Entrar</span>
+					<span id="texto-btn-entrar">Entrar</span><a href="/usario">Regístrate como aprendiz</a>
 					<span
 						id="spinner-btn-entrar"
 						class="spinner-border spinner-border-sm d-none"
