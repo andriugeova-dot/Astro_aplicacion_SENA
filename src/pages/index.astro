@@ -1,12 +1,26 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import Usuario from "../components/usuario.astro";
+import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Inicio">
-
-    <Usuario />
-
+<Layout title="Asistencias SENA">
+	<div class="redireccionando">
+		<div class="spinner-border" role="status">
+			<span class="visually-hidden">Cargando…</span>
+		</div>
+	</div>
 </Layout>
 
+<script>
+	import { haySesionActiva } from '../lib/auth.ts';
+	window.location.replace(haySesionActiva() ? '/dashboard' : '/login');
+</script>
 
+<style>
+	.redireccionando {
+		min-height: 100vh;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		color: var(--sena-verde-oscuro);
+	}
+</style>

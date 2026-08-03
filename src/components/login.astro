@@ -1,0 +1,386 @@
+---
+// src/components/login.astro
+// Formulario de inicio de sesión. Llama a POST {PUBLIC_API_URL}/login,
+// guarda el token+usuario devueltos (ver src/lib/auth.ts) y redirige
+// a /dashboard.
+const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:8002';
+---
+
+<div id="pantalla-login">
+	<section class="panel-marca">
+		<div class="marca-contenido">
+			<span class="marca-eyebrow">SENA · Control de asistencia</span>
+			<h1 class="marca-titulo font-display">
+				Cada llamado a<br /> lista, contado.
+			</h1>
+			<p class="marca-texto">
+				Aprendices, instructores y fichas: un solo lugar para registrar y
+				consultar la asistencia del programa.
+			</p>
+		</div>
+
+		<div class="roster" aria-hidden="true">
+			{
+				Array.from({ length: 48 }).map((_, i) => (
+					<span class="roster-celda" style={`--i:${i}`} />
+				))
+			}
+		</div>
+	</section>
+
+	<section class="panel-form">
+		<div class="tarjeta-login">
+			<header class="tarjeta-header">
+				<h2 class="font-display">Iniciar sesión</h2>
+				<p>Ingresa con tu correo institucional y contraseña.</p>
+			</header>
+
+			<div id="alerta-login" class="alerta-login d-none" role="alert"></div>
+
+			<form id="form-login" novalidate>
+				<div class="mb-3">
+					<label for="correo" class="form-label">Correo</label>
+					<input
+						type="email"
+						id="correo"
+						name="correo"
+						class="form-control"
+						placeholder="nombre.apellido@sena.edu.co"
+						autocomplete="username"
+						required
+					/>
+					<div class="invalid-feedback">Ingresa un correo válido.</div>
+				</div>
+
+				<div class="mb-3">
+					<label for="password" class="form-label">Contraseña</label>
+					<div class="input-group">
+						<input
+							type="password"
+							id="password"
+							name="password"
+							class="form-control"
+							placeholder="••••••••"
+							autocomplete="current-password"
+							required
+						/>
+						<button
+							class="btn btn-outline-secondary"
+							type="button"
+							id="btn-ver-password"
+							aria-label="Mostrar contraseña"
+						>
+							<i class="bi bi-eye" id="icono-ver-password"></i>
+						</button>
+					</div>
+					<div class="invalid-feedback">La contraseña es obligatoria.</div>
+				</div>
+
+				<button type="submit" class="btn btn-entrar w-100" id="btn-entrar">
+					<span id="texto-btn-entrar">Entrar</span>
+					<span
+						id="spinner-btn-entrar"
+						class="spinner-border spinner-border-sm d-none"
+						role="status"
+						aria-hidden="true"
+					></span>
+				</button>
+			</form>
+
+			<p class="pie-registro">
+				¿No tienes cuenta? <a href="/registro">Regístrate como aprendiz</a>
+			</p>
+		</div>
+	</section>
+</div>
+
+<script define:vars={{ apiUrl }}>
+	import('../lib/auth.ts').then(({ guardarSesion, obtenerSesion }) => {
+		// Si ya hay una sesión activa, no tiene sentido mostrar el login.
+		if (obtenerSesion()) {
+			window.location.href = '/dashboard';
+			return;
+		}
+
+		const form = document.getElementById('form-login');
+		const correoInput = document.getElementById('correo');
+		const passwordInput = document.getElementById('password');
+		const alerta = document.getElementById('alerta-login');
+		const btnEntrar = document.getElementById('btn-entrar');
+		const textoBtn = document.getElementById('texto-btn-entrar');
+		const spinnerBtn = document.getElementById('spinner-btn-entrar');
+		const btnVerPassword = document.getElementById('btn-ver-password');
+		const iconoVerPassword = document.getElementById('icono-ver-password');
+
+		btnVerPassword.addEventListener('click', () => {
+			const esPassword = passwordInput.type === 'password';
+			passwordInput.type = esPassword ? 'text' : 'password';
+			iconoVerPassword.classList.toggle('bi-eye', !esPassword);
+			iconoVerPassword.classList.toggle('bi-eye-slash', esPassword);
+			btnVerPassword.setAttribute(
+				'aria-label',
+				esPassword ? 'Ocultar contraseña' : 'Mostrar contraseña',
+			);
+		});
+
+		function mostrarError(mensaje) {
+			alerta.textContent = mensaje;
+			alerta.classList.remove('d-none');
+		}
+
+		function ocultarError() {
+			alerta.classList.add('d-none');
+			alerta.textContent = '';
+		}
+
+		function ponerCargando(cargando) {
+			btnEntrar.disabled = cargando;
+			textoBtn.textContent = cargando ? 'Entrando…' : 'Entrar';
+			spinnerBtn.classList.toggle('d-none', !cargando);
+		}
+
+		form.addEventListener('submit', async (evento) => {
+			evento.preventDefault();
+			ocultarError();
+
+			if (!form.checkValidity()) {
+				form.classList.add('was-validated');
+				return;
+			}
+			form.classList.remove('was-validated');
+
+			ponerCargando(true);
+
+			try {
+				const respuesta = await fetch(`${apiUrl}/login`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						correo: correoInput.value.trim(),
+						password: passwordInput.value,
+					}),
+				});
+
+				const datos = await respuesta.json().catch(() => null);
+
+				if (!respuesta.ok) {
+					mostrarError(
+						datos?.mensaje ?? 'No se pudo iniciar sesión. Intenta de nuevo.',
+					);
+					return;
+				}
+
+				guardarSesion({ token: datos.token, usuario: datos.usuario });
+				window.location.href = '/dashboard';
+			} catch (_error) {
+				mostrarError(
+					'No se pudo conectar con el servidor. Verifica que la API esté corriendo en ' +
+						apiUrl +
+						'.',
+				);
+			} finally {
+				ponerCargando(false);
+			}
+		});
+	});
+</script>
+
+<style>
+	#pantalla-login {
+		min-height: 100vh;
+		display: grid;
+		grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+	}
+
+	/* ---------- Panel de marca ---------- */
+	.panel-marca {
+		position: relative;
+		overflow: hidden;
+		background: linear-gradient(160deg, var(--sena-tinta) 0%, var(--sena-tinta-suave) 55%, var(--sena-verde-oscuro) 130%);
+		color: #eef5ee;
+		padding: 4rem 3.5rem;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+	}
+
+	.marca-contenido {
+		max-width: 30rem;
+	}
+
+	.marca-eyebrow {
+		display: inline-block;
+		font-size: 0.75rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: #b9e7a0;
+		border: 1px solid rgba(185, 231, 160, 0.35);
+		padding: 0.35rem 0.75rem;
+		border-radius: 999px;
+		margin-bottom: 1.75rem;
+	}
+
+	.marca-titulo {
+		font-size: clamp(2rem, 3.2vw, 2.75rem);
+		line-height: 1.15;
+		font-weight: 600;
+		margin: 0 0 1.25rem;
+		color: #ffffff;
+	}
+
+	.marca-texto {
+		color: #cdddd0;
+		font-size: 1.02rem;
+		line-height: 1.6;
+		margin: 0;
+	}
+
+	/* Cuadrícula tipo "lista de asistencia" que se va marcando sola:
+	   el detalle distintivo del panel, referencia directa al dominio del producto. */
+	.roster {
+		display: grid;
+		grid-template-columns: repeat(12, 1fr);
+		gap: 0.5rem;
+		max-width: 26rem;
+	}
+
+	.roster-celda {
+		aspect-ratio: 1;
+		border-radius: 4px;
+		background: rgba(255, 255, 255, 0.08);
+		animation: marcar 5.5s ease-in-out infinite;
+		animation-delay: calc(var(--i) * 90ms);
+	}
+
+	@keyframes marcar {
+		0%,
+		40% {
+			background: rgba(255, 255, 255, 0.08);
+		}
+		52% {
+			background: var(--sena-verde);
+			box-shadow: 0 0 0 1px rgba(57, 169, 0, 0.4);
+		}
+		100% {
+			background: rgba(255, 255, 255, 0.08);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.roster-celda {
+			animation: none;
+			background: rgba(255, 255, 255, 0.08);
+		}
+	}
+
+	/* ---------- Panel de formulario ---------- */
+	.panel-form {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 2.5rem 1.5rem;
+		background: var(--sena-crema);
+	}
+
+	.tarjeta-login {
+		width: 100%;
+		max-width: 24rem;
+		background: #ffffff;
+		border-radius: 16px;
+		padding: 2.5rem 2.25rem;
+		box-shadow: 0 20px 45px -25px rgba(12, 43, 35, 0.35);
+	}
+
+	.tarjeta-header h2 {
+		font-size: 1.5rem;
+		font-weight: 600;
+		margin-bottom: 0.35rem;
+	}
+
+	.tarjeta-header p {
+		color: #5c6b63;
+		font-size: 0.92rem;
+		margin-bottom: 1.75rem;
+	}
+
+	.form-label {
+		font-weight: 500;
+		font-size: 0.88rem;
+	}
+
+	.form-control:focus {
+		border-color: var(--sena-verde);
+		box-shadow: 0 0 0 0.2rem rgba(57, 169, 0, 0.18);
+	}
+
+	.btn-entrar {
+		margin-top: 0.5rem;
+		background: var(--sena-verde);
+		border: none;
+		color: #ffffff;
+		font-weight: 600;
+		padding: 0.65rem 1rem;
+		border-radius: 8px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		transition: background-color 0.15s ease;
+	}
+
+	.btn-entrar:hover,
+	.btn-entrar:focus-visible {
+		background: var(--sena-verde-oscuro);
+		color: #ffffff;
+	}
+
+	.btn-entrar:disabled {
+		opacity: 0.75;
+	}
+
+	.alerta-login {
+		background: #fdecea;
+		color: #8a2f22;
+		border: 1px solid #f4c3bc;
+		border-radius: 8px;
+		padding: 0.65rem 0.85rem;
+		font-size: 0.88rem;
+		margin-bottom: 1.25rem;
+	}
+
+	.pie-registro {
+		text-align: center;
+		font-size: 0.88rem;
+		color: #5c6b63;
+		margin: 1.75rem 0 0;
+	}
+
+	.pie-registro a {
+		color: var(--sena-verde-oscuro);
+		font-weight: 500;
+		text-decoration: none;
+	}
+
+	.pie-registro a:hover {
+		text-decoration: underline;
+	}
+
+	@media (max-width: 960px) {
+		#pantalla-login {
+			grid-template-columns: 1fr;
+		}
+
+		.panel-marca {
+			padding: 2.75rem 1.75rem;
+			gap: 2rem;
+		}
+
+		.marca-titulo {
+			font-size: 1.85rem;
+		}
+
+		.roster {
+			display: none;
+		}
+	}
+</style>
