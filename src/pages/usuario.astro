@@ -1,5 +1,5 @@
 ---
-import Layout from "../layouts/Layout.astro";
+import LayoutUsuariosAstroComponent from "../layouts/layoutUsuarios.astro";
 import Usuario from "../components/usuario.astro";
 
 const API = import.meta.env.PUBLIC_API_URL;
@@ -19,11 +19,11 @@ const links = [
 ];
 ---
 
-<Layout
+<LayoutUsuariosAstroComponent
   title="Dashboard"
   aprendiz={aprendiz}
   links={links}
   subtitulo="Aprendiz"
 >
   <Usuario aprendiz={aprendiz} />
-</Layout>
+</LayoutUsuariosAstroComponent>

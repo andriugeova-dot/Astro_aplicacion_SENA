@@ -1,0 +1,115 @@
+---
+import Sidebar from "../components/sidebar.astro";
+import Navbar from "../components/navbarusuario.astro";
+
+interface SidebarLink {
+  text: string;
+  href: string;
+  icon: string;
+}
+
+interface Props {
+  title: string;
+  links?: SidebarLink[];
+  aprendiz?: any;
+  subtitulo?: string;
+}
+
+const {
+  title,
+  links = [],
+  aprendiz = { nombre: "", apellido: "" },
+  subtitulo = "Aprendiz",
+} = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"/>
+</head>
+
+<body>
+
+  <div class="app-layout">
+
+    <Sidebar links={links} />
+
+    <div class="app-main">
+
+      <Navbar aprendiz={aprendiz} subtitulo={subtitulo} />
+
+      <main class="app-content">
+        <slot/>
+      </main>
+
+    </div>
+
+  </div>
+
+  <script>
+    const menuBtn = document.getElementById("menu-toggle");
+    const sidebar = document.getElementById("sidebar");
+    const backdrop = document.getElementById("sidebar-backdrop");
+
+    function cerrarSidebar() {
+      sidebar?.classList.remove("open");
+      backdrop?.classList.remove("show");
+    }
+
+    menuBtn?.addEventListener("click", () => {
+      sidebar?.classList.toggle("open");
+      backdrop?.classList.toggle("show");
+    });
+
+    backdrop?.addEventListener("click", cerrarSidebar);
+  </script>
+
+</body>
+
+</html>
+
+<style>
+
+html,
+body{
+  margin:0;
+  padding:0;
+  background:#f4f7fb;
+  font-family:system-ui,sans-serif;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+.app-layout{
+  min-height:100vh;
+}
+
+.app-main{
+  margin-left:260px;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  transition:margin-left .3s ease;
+}
+
+.app-content{
+  flex:1;
+  padding-top:15px;
+}
+
+@media(max-width:900px){
+  .app-main{
+    margin-left:0;
+  }
+}
+
+</style>
