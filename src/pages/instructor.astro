@@ -1,5 +1,5 @@
 ---
-import Layout from "../layouts/Layout.astro";
+import LayoutUsuariosAstroComponent from "../layouts/layoutUsuarios.astro";
 import DashboardInstructor from "../components/instructor.astro";
 
 const instructor = {
@@ -18,6 +18,6 @@ const links = [
 ];
 ---
 
-<Layout title="Panel del Instructor" links={links} aprendiz={instructor} subtitulo="Instructor">
+<LayoutUsuariosAstroComponent title="Panel del Instructor" links={links} aprendiz={instructor} subtitulo="Instructor">
   <DashboardInstructor instructor={instructor} />
-</Layout>
+</LayoutUsuariosAstroComponent>

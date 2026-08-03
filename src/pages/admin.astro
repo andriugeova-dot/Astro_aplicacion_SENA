@@ -1,0 +1,34 @@
+---
+import LayoutUsuariosAstroComponent from "../layouts/layoutUsuarios.astro";
+import AdminAstro from "../components/Admin.astro";
+
+const API = import.meta.env.PUBLIC_API_URL;
+
+const respuesta = await fetch(`${API}/usuario/4`); // Geovany, idRol 3 = admin
+const admin = await respuesta.json();
+
+if (!respuesta.ok) {
+  throw new Error(`No se pudo obtener el administrador: ${admin.mensaje}`);
+}
+
+const links = [
+  { text: "Dashboard", href: "/admin", icon: "bi-house-door-fill" },
+  { text: "Usuarios", href: "/admin/usuarios", icon: "bi-people-fill" },
+  { text: "Fichas", href: "/admin/fichas", icon: "bi-journal-bookmark-fill" },
+  { text: "Programas", href: "/admin/programas", icon: "bi-mortarboard-fill" },
+  { text: "Asignaturas", href: "/admin/asignaturas", icon: "bi-book-fill" },
+  { text: "Horarios", href: "/admin/horarios", icon: "bi-calendar3" },
+  { text: "Roles", href: "/admin/roles", icon: "bi-shield-lock-fill" },
+  { text: "Reportes", href: "/admin/reportes", icon: "bi-bar-chart-fill" },
+  { text: "Configuración", href: "/admin/configuracion", icon: "bi-gear-fill" },
+];
+---
+
+<LayoutUsuariosAstroComponent
+  title="Panel del Administrador"
+  aprendiz={admin}
+  links={links}
+  subtitulo="Administrador"
+>
+  <AdminAstro admin={admin} />
+</LayoutUsuariosAstroComponent>
