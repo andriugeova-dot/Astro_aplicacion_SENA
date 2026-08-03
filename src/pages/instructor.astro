@@ -1,0 +1,23 @@
+---
+import Layout from "../layouts/Layout.astro";
+import DashboardInstructor from "../components/instructor.astro";
+
+const instructor = {
+  nombre: "Carlos",
+  apellido: "Gómez",
+};
+
+const links = [
+  { text: "Dashboard", href: "/instructor", icon: "bi-house-door-fill" },
+  { text: "Fichas", href: "/instructor/fichas", icon: "bi-people-fill" },
+  { text: "Horario", href: "/instructor/horario", icon: "bi-calendar3" },
+  { text: "Asistencia", href: "/instructor/asistencia", icon: "bi-clipboard2-check-fill" },
+ 
+  { text: "Aprendices", href: "/instructor/aprendices", icon: "bi-people-fill" },
+ 
+];
+---
+
+<Layout title="Panel del Instructor" links={links} aprendiz={instructor} subtitulo="Instructor">
+  <DashboardInstructor instructor={instructor} />
+</Layout>

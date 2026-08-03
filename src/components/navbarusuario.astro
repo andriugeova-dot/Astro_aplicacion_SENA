@@ -1,0 +1,186 @@
+---
+interface Props {
+  aprendiz: any;
+  titulo?: string;
+  subtitulo?: string;
+}
+
+const {
+  aprendiz,
+  titulo = "Sistema de Asistencia",
+  subtitulo = "Aprendiz",
+} = Astro.props;
+---
+
+<header class="header">
+  <div class="header-left">
+
+    <button class="menu-btn" id="menu-toggle" aria-label="Abrir menú">
+      <i class="bi bi-list"></i>
+    </button>
+
+    <img src="/sena-logo.png" alt="SENA" class="header-logo" />
+
+    <div class="header-title">
+      <h1>{titulo}</h1>
+      <span>{subtitulo}</span>
+    </div>
+
+  </div>
+
+  <div class="header-right">
+
+    <button class="notification-btn" aria-label="Notificaciones">
+      <i class="bi bi-bell-fill"></i>
+      <span class="badge">3</span>
+    </button>
+
+    <div class="profile">
+      <div class="avatar">
+        {aprendiz.nombre.charAt(0)}{aprendiz.apellido.charAt(0)}
+      </div>
+
+      <div class="profile-info">
+        <span class="name">{aprendiz.nombre}</span>
+        <span class="role">{subtitulo}</span>
+      </div>
+    </div>
+
+  </div>
+</header>
+
+<style>
+
+.header{
+  background:white;
+  height:90px;
+  border-bottom:1px solid #e5e7eb;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 35px;
+  position:sticky;
+  top:0;
+  z-index:999;
+}
+
+.header-left{
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+
+.menu-btn{
+  background:none;
+  border:none;
+  font-size:1.4rem;
+  cursor:pointer;
+  color:#374151;
+  display:none;
+  appearance:none;
+  -webkit-appearance:none;
+}
+
+.header-logo{
+  width:48px;
+}
+
+.header-title h1{
+  font-size:1.25rem;
+  color:#1f2937;
+  margin:0;
+}
+
+.header-title span{
+  font-size:.85rem;
+  color:#6b7280;
+}
+
+.header-right{
+  display:flex;
+  align-items:center;
+  gap:22px;
+}
+
+.notification-btn{
+  position:relative;
+  background:none;
+  border:none;
+  cursor:pointer;
+  font-size:1.2rem;
+  color:#374151;
+  appearance:none;
+  -webkit-appearance:none;
+}
+
+.notification-btn .badge{
+  position:absolute;
+  top:-6px;
+  right:-8px;
+  background:#39A900;
+  color:white;
+  font-size:.65rem;
+  font-weight:700;
+  border-radius:50%;
+  width:18px;
+  height:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.profile{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  cursor:pointer;
+}
+
+.avatar{
+  width:46px;
+  height:46px;
+  border-radius:50%;
+  background:#39A900;
+  color:white;
+  font-weight:bold;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+  font-size:1rem;
+}
+
+.profile-info{
+  display:flex;
+  flex-direction:column;
+  line-height:1.2;
+}
+
+.profile-info .name{
+  font-weight:600;
+  font-size:.9rem;
+  color:#111827;
+}
+
+.profile-info .role{
+  font-size:.75rem;
+  color:#6b7280;
+}
+
+@media(max-width:900px){
+  .menu-btn{
+    display:block;
+  }
+
+  .header-title h1{
+    font-size:1rem;
+  }
+}
+
+@media(max-width:600px){
+  .profile-info{
+    display:none;
+  }
+}
+
+</style>

@@ -1,0 +1,29 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Usuario from "../components/usuario.astro";
+
+const API = import.meta.env.PUBLIC_API_URL;
+
+const respuesta = await fetch(`${API}/aprendiz/5`);
+const aprendiz = await respuesta.json();
+
+if (!respuesta.ok) {
+  throw new Error(`No se pudo obtener el aprendiz: ${aprendiz.mensaje}`);
+}
+
+const links = [
+  { text: "Dashboard", href: "/usuario", icon: "bi-house-door-fill" },
+  { text: "Horario", href: "/horario", icon: "bi-calendar3" },
+  { text: "Asignaturas", href: "/asignaturas", icon: "bi-journal-bookmark-fill" },
+  { text: "Asistencia", href: "/asistencia", icon: "bi-clipboard2-check-fill" },
+];
+---
+
+<Layout
+  title="Dashboard"
+  aprendiz={aprendiz}
+  links={links}
+  subtitulo="Aprendiz"
+>
+  <Usuario aprendiz={aprendiz} />
+</Layout>
