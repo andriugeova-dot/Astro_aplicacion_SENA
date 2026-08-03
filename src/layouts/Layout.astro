@@ -1,21 +1,25 @@
 ---
+import Sidebar from "../components/sidebar.astro";
 import Navbar from "../components/navbarusuario.astro";
 
-interface NavLink{
-    text:string;
-    href:string;
+interface SidebarLink {
+  text: string;
+  href: string;
+  icon: string;
 }
 
-interface Props{
-    title:string;
-    links?:NavLink[];
-    aprendiz?:any;
+interface Props {
+  title: string;
+  links?: SidebarLink[];
+  aprendiz?: any;
+  subtitulo?: string;
 }
 
 const {
-    title,
-    links = [],
-    aprendiz = { nombre: "", apellido: "" }
+  title,
+  links = [],
+  aprendiz = { nombre: "", apellido: "" },
+  subtitulo = "Aprendiz",
 } = Astro.props;
 ---
 
@@ -32,19 +36,47 @@ const {
 </head>
 
 <body>
-  <Navbar
-    links={links}
-    aprendiz={aprendiz}
-  />
 
-  <main>
-    <slot/>
-  </main>
+  <div class="app-layout">
+
+    <Sidebar links={links} />
+
+    <div class="app-main">
+
+      <Navbar aprendiz={aprendiz} subtitulo={subtitulo} />
+
+      <main class="app-content">
+        <slot/>
+      </main>
+
+    </div>
+
+  </div>
+
+  <script>
+    const menuBtn = document.getElementById("menu-toggle");
+    const sidebar = document.getElementById("sidebar");
+    const backdrop = document.getElementById("sidebar-backdrop");
+
+    function cerrarSidebar() {
+      sidebar?.classList.remove("open");
+      backdrop?.classList.remove("show");
+    }
+
+    menuBtn?.addEventListener("click", () => {
+      sidebar?.classList.toggle("open");
+      backdrop?.classList.toggle("show");
+    });
+
+    backdrop?.addEventListener("click", cerrarSidebar);
+  </script>
+
 </body>
 
 </html>
 
 <style>
+
 html,
 body{
   margin:0;
@@ -56,4 +88,28 @@ body{
 *{
   box-sizing:border-box;
 }
+
+.app-layout{
+  min-height:100vh;
+}
+
+.app-main{
+  margin-left:260px;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  transition:margin-left .3s ease;
+}
+
+.app-content{
+  flex:1;
+  padding-top:15px;
+}
+
+@media(max-width:900px){
+  .app-main{
+    margin-left:0;
+  }
+}
+
 </style>

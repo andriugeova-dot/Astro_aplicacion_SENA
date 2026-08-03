@@ -1,0 +1,136 @@
+---
+interface SidebarLink {
+  text: string;
+  href: string;
+  icon: string;
+}
+
+interface Props {
+  links: SidebarLink[];
+}
+
+const { links } = Astro.props;
+const currentPath = Astro.url.pathname;
+---
+
+<aside class="sidebar" id="sidebar">
+
+  <nav class="nav-items">
+    {links.map(link => {
+      const activo = currentPath === link.href;
+      return (
+        <a href={link.href} class={`nav-item ${activo ? "active" : ""}`}>
+          <i class={`bi ${link.icon}`}></i>
+          <span>{link.text}</span>
+        </a>
+      );
+    })}
+  </nav>
+
+  <div class="sidebar-footer">
+    <img src="/sena-logo.png" alt="SENA" class="sena-logo" />
+    <p>Dirección de Formación<br />Profesional Integral</p>
+  </div>
+
+</aside>
+
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+<style>
+
+.sidebar{
+  position:fixed;
+  top:0;
+  left:0;
+  width:260px;
+  height:100vh;
+  background:#14532d;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  padding:20px 16px;
+  overflow-y:auto;
+  z-index:1000;
+  transition:transform .3s ease;
+}
+
+.nav-items{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.nav-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 16px;
+  border-radius:10px;
+  color:#d1fae5;
+  text-decoration:none;
+  font-size:.95rem;
+  transition:.2s;
+}
+
+.nav-item i{
+  font-size:1.1rem;
+  width:20px;
+  text-align:center;
+}
+
+.nav-item:hover{
+  background:rgba(255,255,255,.08);
+  color:white;
+}
+
+.nav-item.active{
+  background:#39A900;
+  color:white;
+  font-weight:600;
+}
+
+.sidebar-footer{
+  text-align:center;
+  color:#a7f3d0;
+  padding-top:20px;
+}
+
+.sena-logo{
+  width:50px;
+  margin-bottom:10px;
+}
+
+.sidebar-footer p{
+  font-size:.72rem;
+  line-height:1.4;
+  opacity:.8;
+}
+
+.sidebar-backdrop{
+  display:none;
+}
+
+@media(max-width:900px){
+  .sidebar{
+    transform:translateX(-100%);
+  }
+
+  .sidebar.open{
+    transform:translateX(0);
+    box-shadow:10px 0 30px rgba(0,0,0,.3);
+  }
+
+  .sidebar-backdrop{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.4);
+    z-index:999;
+  }
+
+  .sidebar-backdrop.show{
+    display:block;
+  }
+}
+
+</style>
