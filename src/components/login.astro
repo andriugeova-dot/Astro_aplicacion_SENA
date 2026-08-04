@@ -3,7 +3,13 @@
 // Formulario de inicio de sesión. Llama a POST {PUBLIC_API_URL}/login,
 // guarda el token+usuario devueltos (ver src/lib/auth.ts) y redirige
 // a /dashboard.
+import {
+    guardarSesion,
+    obtenerSesion,
+    obtenerRutaPorRol,
+} from "../lib/auth";
 const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:8002';
+
 ---
 
 <div id="pantalla-login">
@@ -71,7 +77,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:8002';
 				</div>
 
 				<button type="submit" class="btn btn-entrar w-100" id="btn-entrar">
-					<span id="texto-btn-entrar">Entrar</span><a href="/usario">Regístrate como aprendiz</a>
+					<span id="texto-btn-entrar">Entrar</span>
 					<span
 						id="spinner-btn-entrar"
 						class="spinner-border spinner-border-sm d-none"
@@ -89,95 +95,13 @@ const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:8002';
 </div>
 
 <script define:vars={{ apiUrl }}>
-	import('../lib/auth.ts').then(({ guardarSesion, obtenerSesion }) => {
-		// Si ya hay una sesión activa, no tiene sentido mostrar el login.
-		if (obtenerSesion()) {
-			window.location.href = '/dashboard';
-			return;
-		}
-
-		const form = document.getElementById('form-login');
-		const correoInput = document.getElementById('correo');
-		const passwordInput = document.getElementById('password');
-		const alerta = document.getElementById('alerta-login');
-		const btnEntrar = document.getElementById('btn-entrar');
-		const textoBtn = document.getElementById('texto-btn-entrar');
-		const spinnerBtn = document.getElementById('spinner-btn-entrar');
-		const btnVerPassword = document.getElementById('btn-ver-password');
-		const iconoVerPassword = document.getElementById('icono-ver-password');
-
-		btnVerPassword.addEventListener('click', () => {
-			const esPassword = passwordInput.type === 'password';
-			passwordInput.type = esPassword ? 'text' : 'password';
-			iconoVerPassword.classList.toggle('bi-eye', !esPassword);
-			iconoVerPassword.classList.toggle('bi-eye-slash', esPassword);
-			btnVerPassword.setAttribute(
-				'aria-label',
-				esPassword ? 'Ocultar contraseña' : 'Mostrar contraseña',
-			);
-		});
-
-		function mostrarError(mensaje) {
-			alerta.textContent = mensaje;
-			alerta.classList.remove('d-none');
-		}
-
-		function ocultarError() {
-			alerta.classList.add('d-none');
-			alerta.textContent = '';
-		}
-
-		function ponerCargando(cargando) {
-			btnEntrar.disabled = cargando;
-			textoBtn.textContent = cargando ? 'Entrando…' : 'Entrar';
-			spinnerBtn.classList.toggle('d-none', !cargando);
-		}
-
-		form.addEventListener('submit', async (evento) => {
-			evento.preventDefault();
-			ocultarError();
-
-			if (!form.checkValidity()) {
-				form.classList.add('was-validated');
-				return;
-			}
-			form.classList.remove('was-validated');
-
-			ponerCargando(true);
-
-			try {
-				const respuesta = await fetch(`${apiUrl}/login`, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						correo: correoInput.value.trim(),
-						password: passwordInput.value,
-					}),
-				});
-
-				const datos = await respuesta.json().catch(() => null);
-
-				if (!respuesta.ok) {
-					mostrarError(
-						datos?.mensaje ?? 'No se pudo iniciar sesión. Intenta de nuevo.',
-					);
-					return;
-				}
-
-				guardarSesion({ token: datos.token, usuario: datos.usuario });
-				window.location.href = '/dashboard';
-			} catch (_error) {
-				mostrarError(
-					'No se pudo conectar con el servidor. Verifica que la API esté corriendo en ' +
-						apiUrl +
-						'.',
-				);
-			} finally {
-				ponerCargando(false);
-			}
-		});
-	});
+    document.documentElement.dataset.apiUrl = apiUrl;
 </script>
+
+<script type="module">
+    import "../scripts/login.ts";
+</script>
+
 
 <style>
 	#pantalla-login {

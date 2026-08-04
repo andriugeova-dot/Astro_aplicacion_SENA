@@ -1,16 +1,11 @@
 ---
-import LayoutUsuariosAstroComponent from "../layouts/layoutUsuarios.astro";
+import Layout from "../layouts/Layout.astro";
 import Usuario from "../components/usuario.astro";
 
-const API = import.meta.env.PUBLIC_API_URL;
-
-const respuesta = await fetch(`${API}/aprendiz/5`);
-const aprendiz = await respuesta.json();
-
-if (!respuesta.ok) {
-  throw new Error(`No se pudo obtener el aprendiz: ${aprendiz.mensaje}`);
-}
-
+// Antes esta página hacía un fetch en el servidor a /aprendiz/5 (fijo,
+// sin importar quién inició sesión, y sin token). Ahora los datos del
+// aprendiz logueado se cargan en el cliente dentro de <Usuario />,
+// usando la sesión guardada por el login (ver src/lib/auth.ts).
 const links = [
   { text: "Dashboard", href: "/usuario", icon: "bi-house-door-fill" },
   { text: "Horario", href: "/horario", icon: "bi-calendar3" },
@@ -19,11 +14,7 @@ const links = [
 ];
 ---
 
-<LayoutUsuariosAstroComponent
-  title="Dashboard"
-  aprendiz={aprendiz}
-  links={links}
-  subtitulo="Aprendiz"
->
-  <Usuario aprendiz={aprendiz} />
-</LayoutUsuariosAstroComponent>
+<!-- rolesPermitidos={[1]}: solo aprendices (idRol 1) pueden ver este panel. -->
+<Layout title="Dashboard" links={links} subtitulo="Aprendiz" rolesPermitidos={[1]}>
+  <Usuario />
+</Layout>
