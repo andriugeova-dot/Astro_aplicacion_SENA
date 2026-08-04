@@ -1,10 +1,12 @@
 ---
 import LayoutUsuariosAstroComponent from "../layouts/layoutUsuarios.astro";
 import AdminAstro from "../components/Admin.astro";
+import Layout from "../layouts/Layout.astro";
+import DashboardAdmin from "../components/Admin.astro";
 
 const API = import.meta.env.PUBLIC_API_URL;
 
-const respuesta = await fetch(`${API}/usuario/4`); // Geovany, idRol 3 = admin
+const respuesta = await fetch(`${API}/usuario/12`); // Geovany, idRol 3 = admin
 const admin = await respuesta.json();
 
 if (!respuesta.ok) {
@@ -21,6 +23,17 @@ const links = [
   { text: "Roles", href: "/admin/roles", icon: "bi-shield-lock-fill" },
 ];
 ---
+
+
+<script>
+  import { obtenerSesion } from "../lib/auth.ts";
+
+  const sesion = obtenerSesion();
+  if (sesion) {
+    const el = document.getElementById("nombre-admin");
+    if (el) el.textContent = `${sesion.usuario.nombre} ${sesion.usuario.apellido}`;
+  }
+</script>
 
 <LayoutUsuariosAstroComponent
   title="Panel del Administrador"

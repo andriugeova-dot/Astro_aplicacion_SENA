@@ -27,7 +27,7 @@ const STORAGE_KEY = "asistencias_sesion";
 export const NOMBRES_ROL: Record<number, string> = {
   1: "Aprendiz",
   2: "Instructor",
-  3: "Administrador",
+  3: "Admin",
 };
 
 // A dónde debe ir cada rol justo después de iniciar sesión
@@ -35,7 +35,7 @@ export const NOMBRES_ROL: Record<number, string> = {
 export const RUTA_POR_ROL: Record<number, string> = {
   1: "/usuario",
   2: "/instructor",
-  3: "/dashboard",
+  3: "/admin",
 };
 
 /** Ruta del panel que le corresponde a un rol. Cae a /dashboard si el rol no está mapeado. */
