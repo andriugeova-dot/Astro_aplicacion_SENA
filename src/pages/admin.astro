@@ -1,15 +1,19 @@
 ---
 import LayoutUsuariosAstroComponent from "../layouts/layoutUsuarios.astro";
 import AdminAstro from "../components/Admin.astro";
+import Layout from "../layouts/Layout.astro";
+import DashboardAdmin from "../components/Admin.astro";
+
+
+const admin = {
+  nombre: "",
+  apellido: "",
+};
+
 
 const API = import.meta.env.PUBLIC_API_URL;
 
-const respuesta = await fetch(`${API}/usuario/12`); // Geovany, idRol 3 = admin
-const admin = await respuesta.json();
 
-if (!respuesta.ok) {
-  throw new Error(`No se pudo obtener el administrador: ${admin.mensaje}`);
-}
 
 const links = [
   { text: "Dashboard", href: "/admin", icon: "bi-house-door-fill" },
@@ -22,6 +26,9 @@ const links = [
 ];
 ---
 
+<Layout title="Panel del Admin" links={links} subtitulo="admin" rolesPermitidos={[3]}>
+  <DashboardAdmin admin={admin} />
+</Layout>
 
 <script>
   import { obtenerSesion } from "../lib/auth.ts";
@@ -32,12 +39,3 @@ const links = [
     if (el) el.textContent = `${sesion.usuario.nombre} ${sesion.usuario.apellido}`;
   }
 </script>
-
-<LayoutUsuariosAstroComponent
-  title="Panel del Administrador"
-  aprendiz={admin}
-  links={links}
-  subtitulo="Administrador"
->
-  <AdminAstro admin={admin} />
-</LayoutUsuariosAstroComponent>
