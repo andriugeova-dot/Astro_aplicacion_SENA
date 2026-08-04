@@ -15,6 +15,10 @@ const currentPath = Astro.url.pathname;
 
 <aside class="sidebar" id="sidebar">
 
+  <div class="sidebar-header">
+    <img src="/sena-logo.png" alt="Logo SENA" class="logo-superior" />
+  </div>
+
   <nav class="nav-items">
     {links.map(link => {
       const activo = currentPath === link.href;
@@ -29,7 +33,7 @@ const currentPath = Astro.url.pathname;
 
   <div class="sidebar-footer">
     <img src="/sena-logo.png" alt="SENA" class="sena-logo" />
-    <p>Dirección de Formación<br />Profesional Integral</p>
+    <p>Dirección de Formación<br>Profesional Integral</p>
   </div>
 
 </aside>
@@ -52,6 +56,16 @@ const currentPath = Astro.url.pathname;
   overflow-y:auto;
   z-index:1000;
   transition:transform .3s ease;
+}
+.sidebar-header{
+    display:flex;
+    justify-content:center;
+    margin-bottom:30px;
+}
+
+.logo-superior{
+    width:90px;
+    height:auto;
 }
 
 .nav-items{
@@ -90,9 +104,11 @@ const currentPath = Astro.url.pathname;
 }
 
 .sidebar-footer{
-  text-align:center;
-  color:#a7f3d0;
-  padding-top:20px;
+    text-align:center;
+    color:#a7f3d0;
+    margin-top:auto;
+    padding-bottom:20px;
+    transform:translateY(-40px);
 }
 
 .sena-logo{

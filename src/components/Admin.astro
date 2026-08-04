@@ -43,7 +43,7 @@ const acciones = [
   <section class="welcome">
     <div>
       <h2>¡Bienvenido, {admin.nombre} {admin.apellido}!</h2>
-      <p>Panel general de administración del sistema.</p>
+      <p>Panel administración del sistema.</p>
     </div>
 
     <div class="date-badge">
@@ -67,66 +67,6 @@ const acciones = [
       </div>
     ))}
   </section>
-
-  <!-- USUARIOS RECIENTES + FICHAS -->
-  <section class="two-col">
-
-    <div class="card">
-      <div class="card-header">
-        <h3><i class="bi bi-person-lines-fill"></i> Usuarios recientes</h3>
-        <button class="link-btn">Ver todos</button>
-      </div>
-
-      <div class="usuario-list">
-        {usuariosRecientes.map(usuario => (
-          <div class="usuario-item">
-            <div class="usuario-avatar">
-              {usuario.nombre.charAt(0)}
-            </div>
-            <div class="usuario-info">
-              <strong>{usuario.nombre}</strong>
-              <p>{usuario.correo}</p>
-            </div>
-            <span class={`rol-badge ${usuario.rol === "Instructor" ? "instructor" : "aprendiz"}`}>
-              {usuario.rol}
-            </span>
-            <span class="usuario-fecha">{usuario.fecha}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">
-        <h3><i class="bi bi-journal-bookmark-fill"></i> Fichas activas</h3>
-        <button class="link-btn">Ver todas</button>
-      </div>
-
-      <div class="ficha-list">
-        {fichas.map(ficha => (
-          <div class="ficha-item">
-            <div class="ficha-icon">
-              <i class={`bi ${ficha.icon}`}></i>
-            </div>
-            <div class="ficha-info">
-              <div class="ficha-titulo">
-                <strong>{ficha.numero}</strong>
-                <span class="estado">{ficha.estado}</span>
-              </div>
-              <p>{ficha.programa}</p>
-              <span class="ficha-instructor">Instructor: {ficha.instructor}</span>
-            </div>
-            <div class="ficha-aprendices">
-              <strong>{ficha.aprendices}</strong>
-              <span>Aprendices</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-
-  </section>
-
   <!-- ACCIONES -->
   <section class="acciones-section">
 

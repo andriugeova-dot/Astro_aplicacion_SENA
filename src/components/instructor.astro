@@ -17,18 +17,6 @@ const stats = [
   { icon: "bi-journal-bookmark-fill", valor: 3, label: "A tu cargo", titulo: "Fichas" },
 ];
 
-const fichas = [
-  { icon: "bi-laptop", numero: "ADSO - 2876543", nombre: "Análisis y Desarrollo de Sistemas de Información", aprendices: 28, estado: "ACTIVA" },
-  { icon: "bi-code-slash", numero: "ADSO - 2876544", nombre: "Análisis y Desarrollo de Sistemas de Información", aprendices: 31, estado: "ACTIVA" },
-  { icon: "bi-diagram-3-fill", numero: "SOFTWARE - 3001123", nombre: "Desarrollo de Software", aprendices: 25, estado: "ACTIVA" },
-];
-
-const clases = [
-  { hora: "08:00", horaFin: "08:50", ficha: "ADSO - 2876543", asignatura: "Análisis y Desarrollo de Sistemas", aula: "Aula 302", aprendices: 28 },
-  { hora: "10:00", horaFin: "10:50", ficha: "SOFTWARE - 3001123", asignatura: "Desarrollo de Software", aula: "Aula 205", aprendices: 25 },
-  { hora: "14:00", horaFin: "14:50", ficha: "ADSO - 2876544", asignatura: "Análisis y Desarrollo de Sistemas", aula: "Aula 301", aprendices: 31 },
-];
-
 const acciones = [
   { icon: "bi-person-check-fill", texto: "Registrar asistencia" },
   { icon: "bi-file-earmark-text-fill", texto: "Ver reportes" },
@@ -68,65 +56,7 @@ const acciones = [
   </section>
 
   <!-- FICHAS + CLASES -->
-  <section class="two-col">
-
-    <div class="card">
-      <div class="card-header">
-        <h3><i class="bi bi-people-fill"></i> Mis Fichas</h3>
-        <button class="link-btn">Ver todas</button>
-      </div>
-
-      <div class="ficha-list">
-        {fichas.map(ficha => (
-          <div class="ficha-item">
-            <div class="ficha-icon">
-              <i class={`bi ${ficha.icon}`}></i>
-            </div>
-            <div class="ficha-info">
-              <div class="ficha-titulo">
-                <strong>{ficha.numero}</strong>
-                <span class="estado">{ficha.estado}</span>
-              </div>
-              <p>{ficha.nombre}</p>
-            </div>
-            <div class="ficha-aprendices">
-              <strong>{ficha.aprendices}</strong>
-              <span>Aprendices</span>
-            </div>
-            <i class="bi bi-chevron-right"></i>
-          </div>
-        ))}
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">
-        <h3><i class="bi bi-calendar3"></i> Próximas clases</h3>
-        <button class="link-btn">Ver horario</button>
-      </div>
-
-      <div class="clase-list">
-        {clases.map(clase => (
-          <div class="clase-item">
-            <div class="clase-hora">
-              <strong>{clase.hora}</strong>
-              <span>{clase.horaFin}</span>
-            </div>
-            <div class="clase-info">
-              <strong>{clase.ficha}</strong>
-              <p>{clase.asignatura}</p>
-              <span>{clase.aula}</span>
-            </div>
-            <div class="clase-aprendices">
-              <i class="bi bi-people-fill"></i>
-              {clase.aprendices}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-
-  </section>
+  
 
   <!-- ACCIONES -->
   <section class="acciones-section">
