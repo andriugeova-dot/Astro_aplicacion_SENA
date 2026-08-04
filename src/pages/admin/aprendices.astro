@@ -15,37 +15,34 @@ const links = [
 ];
 ---
 
-<Layout title="Usuarios | Panel Admin" links={links} subtitulo="admin" rolesPermitidos={[3]}>
+<Layout title="Aprendices | Panel Admin" links={links} subtitulo="admin" rolesPermitidos={[3]}>
   <AdminTablaCRUD
-    titulo="Usuarios"
-    descripcion="Administra las cuentas de acceso: aprendices, instructores y administradores."
-    entidadSingular="Usuario"
-    endpoint="/usuario"
-    idField="idUsuario"
+    titulo="Aprendices"
+    descripcion="Administra los aprendices y la ficha a la que pertenecen."
+    entidadSingular="Aprendiz"
+    endpoint="/aprendiz"
+    idField="idAprendiz"
     columnas={[
-      { field: "idUsuario", headerName: "ID", minWidth: 90 },
+      { field: "idAprendiz", headerName: "ID", minWidth: 90 },
+      { field: "documento", headerName: "Documento", minWidth: 140 },
       { field: "nombre", headerName: "Nombre" },
       { field: "apellido", headerName: "Apellido" },
       { field: "correo", headerName: "Correo", minWidth: 200 },
-      { field: "idRol", headerName: "Rol", minWidth: 160 },
+      { field: "telefono", headerName: "Teléfono", minWidth: 140 },
+      { field: "idFicha", headerName: "Ficha", minWidth: 160 },
     ]}
     camposFormulario={[
+      { field: "documento", label: "Documento", type: "text", required: true },
       { field: "nombre", label: "Nombre", type: "text", required: true },
       { field: "apellido", label: "Apellido", type: "text", required: true },
       { field: "correo", label: "Correo", type: "email", required: true },
+      { field: "telefono", label: "Teléfono", type: "text", required: true },
       {
-        field: "password",
-        label: "Contraseña",
-        type: "password",
-        required: true,
-        ayuda: "Mínimo 6 caracteres.",
-      },
-      {
-        field: "idRol",
-        label: "Rol",
+        field: "idFicha",
+        label: "Ficha",
         type: "select",
         required: true,
-        fuenteRemota: { endpoint: "/rol", valueField: "idRol", labelField: "nombreRol" },
+        fuenteRemota: { endpoint: "/ficha", valueField: "idFicha", labelField: "numeroFicha" },
       },
     ]}
   />
