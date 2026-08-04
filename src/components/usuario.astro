@@ -1,12 +1,15 @@
 ---
-const { aprendiz } = Astro.props;
+// Este componente ya no recibe `aprendiz` por props desde el servidor:
+// los datos se cargan en el cliente a partir de la sesión activa
+// (ver el <script> al final y src/lib/auth.ts). Todo arranca con
+// placeholders y se reemplaza cuando llega la respuesta.
 ---
 
 <main class="dashboard">
 
     <section class="welcome">
         <div>
-            <h1>¡Bienvenido, {aprendiz.nombre}! 
+            <h1 id="saludo-nombre">¡Bienvenido!
                  <i class="bi bi-person-check-fill"></i>
             </h1>
             <p>Consulta toda la información de tu proceso de formación.</p>
@@ -21,13 +24,10 @@ const { aprendiz } = Astro.props;
             <div class="profile-top"></div>
 
             <div class="avatar">
-                <span>
-                    {aprendiz.nombre.charAt(0)}
-                    {aprendiz.apellido.charAt(0)}
-                </span>
+                <span id="avatar-iniciales">--</span>
             </div>
 
-            <h2>{aprendiz.nombre} {aprendiz.apellido}</h2>
+            <h2 id="perfil-nombre">—</h2>
 
             <p>Aprendiz SENA</p>
 
@@ -37,27 +37,27 @@ const { aprendiz } = Astro.props;
 
                 <div class="item">
                     <span>Documento</span>
-                    <strong>{aprendiz.documento}</strong>
+                    <strong id="dato-documento">—</strong>
                 </div>
 
                 <div class="item">
                     <span>Correo</span>
-                    <strong>{aprendiz.correo}</strong>
+                    <strong id="dato-correo">—</strong>
                 </div>
 
                 <div class="item">
                     <span>Teléfono</span>
-                    <strong>{aprendiz.telefono}</strong>
+                    <strong id="dato-telefono">—</strong>
                 </div>
 
                 <div class="item">
                      <span>Ficha</span>
-                    <strong>{aprendiz.numeroFicha}</strong>
+                    <strong id="dato-ficha">—</strong>
                 </div>
 
                 <div class="item">
                     <span>Programa</span>
-                    <strong>{aprendiz.programa}</strong>
+                    <strong id="dato-programa">—</strong>
                 </div>
 
 
@@ -149,27 +149,27 @@ const { aprendiz } = Astro.props;
 
             <label>
                 <span>Nombre</span>
-                <input type="text" name="nombre" value={aprendiz.nombre} required />
+                <input type="text" name="nombre" id="input-nombre" required />
             </label>
 
             <label>
                 <span>Apellido</span>
-                <input type="text" name="apellido" value={aprendiz.apellido} disabled />
+                <input type="text" name="apellido" id="input-apellido" disabled />
             </label>
 
             <label>
                 <span>Documento</span>
-                <input type="text" name="documento" value={aprendiz.documento} disabled />
+                <input type="text" name="documento" id="input-documento" disabled />
             </label>
 
             <label>
                 <span>Correo</span>
-                <input type="email" name="correo" value={aprendiz.correo} disabled />
+                <input type="email" name="correo" id="input-correo" disabled />
             </label>
 
             <label>
                 <span>Teléfono</span>
-                <input type="tel" name="telefono" value={aprendiz.telefono} required />
+                <input type="tel" name="telefono" id="input-telefono" required />
             </label>
 
         </div>
@@ -183,38 +183,99 @@ const { aprendiz } = Astro.props;
 
 </dialog>
 
-<script define:vars={{ aprendizId: aprendiz.id }}>
+<script>
+    import { obtenerSesion, fetchAutenticado } from "../lib/auth.ts";
 
-    const modal = document.getElementById("modal-info-personal");
-    const openBtn = document.getElementById("btn-info-personal");
-    const closeBtn = document.getElementById("close-modal");
-    const cancelBtn = document.getElementById("cancel-btn");
-    const form = document.getElementById("form-info-personal");
+    const apiUrl = import.meta.env.PUBLIC_API_URL ?? "http://localhost:8002";
+    const sesion = obtenerSesion();
+
+    // Layout.astro ya garantiza (vía exigirRol) que si llegamos hasta acá
+    // hay sesión y el rol es aprendiz; esta comprobación es solo defensiva.
+    let aprendizId: number | null = null;
+
+    if (sesion) {
+        const { usuario } = sesion;
+
+        document.getElementById("saludo-nombre")!.innerHTML =
+            `¡Bienvenido, ${usuario.nombre}! <i class="bi bi-person-check-fill"></i>`;
+        document.getElementById("perfil-nombre")!.textContent = `${usuario.nombre} ${usuario.apellido}`;
+        document.getElementById("avatar-iniciales")!.textContent =
+            `${usuario.nombre.charAt(0)}${usuario.apellido.charAt(0)}`;
+        document.getElementById("dato-correo")!.textContent = usuario.correo;
+
+        // La tabla `aprendiz` no tiene todavía una FK hacia `usuario`
+        // (ver asistencia_db.sql), así que buscamos su ficha técnica por
+        // correo. Si el backend no soporta ese filtro aún, estos campos
+        // simplemente se quedan en "—" sin romper la página; hay que
+        // agregar ese endpoint (o el vínculo idUsuario -> idAprendiz)
+        // en server_asistencias para que esto quede completo.
+        (async () => {
+            try {
+                const respuesta = await fetchAutenticado(
+                    `${apiUrl}/aprendiz?correo=${encodeURIComponent(usuario.correo)}`,
+                );
+                if (!respuesta.ok) return;
+
+                const datos = await respuesta.json();
+                const aprendiz = Array.isArray(datos) ? datos[0] : datos;
+                if (!aprendiz) return;
+
+                aprendizId = aprendiz.idAprendiz ?? null;
+                document.getElementById("dato-documento")!.textContent = aprendiz.documento ?? "—";
+                document.getElementById("dato-telefono")!.textContent = aprendiz.telefono ?? "—";
+                document.getElementById("dato-ficha")!.textContent =
+                    aprendiz.numeroFicha ?? (aprendiz.idFicha ? String(aprendiz.idFicha) : "—");
+                document.getElementById("dato-programa")!.textContent = aprendiz.programa ?? "—";
+            } catch (_error) {
+                // Sin conexión o endpoint no disponible todavía: se deja el placeholder.
+            }
+        })();
+    }
+
+    const modal = document.getElementById("modal-info-personal") as HTMLDialogElement;
+    const openBtn = document.getElementById("btn-info-personal")!;
+    const closeBtn = document.getElementById("close-modal")!;
+    const cancelBtn = document.getElementById("cancel-btn")!;
+    const form = document.getElementById("form-info-personal") as HTMLFormElement;
 
     openBtn.addEventListener("click", () => {
+        // Precarga el formulario con lo que tengamos cargado hasta ahora.
+        (document.getElementById("input-nombre") as HTMLInputElement).value =
+            sesion?.usuario.nombre ?? "";
+        (document.getElementById("input-apellido") as HTMLInputElement).value =
+            sesion?.usuario.apellido ?? "";
+        (document.getElementById("input-correo") as HTMLInputElement).value =
+            sesion?.usuario.correo ?? "";
+        (document.getElementById("input-documento") as HTMLInputElement).value =
+            document.getElementById("dato-documento")?.textContent ?? "";
+        (document.getElementById("input-telefono") as HTMLInputElement).value =
+            document.getElementById("dato-telefono")?.textContent === "—"
+                ? ""
+                : (document.getElementById("dato-telefono")?.textContent ?? "");
+
         modal.showModal();
     });
 
-    closeBtn.addEventListener("click", () => {
-        modal.close();
-    });
-
-    cancelBtn.addEventListener("click", () => {
-        modal.close();
-    });
+    closeBtn.addEventListener("click", () => modal.close());
+    cancelBtn.addEventListener("click", () => modal.close());
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
+
+        if (!aprendizId) {
+            alert("Todavía no se pudo identificar tu ficha de aprendiz; intenta de nuevo en un momento.");
+            return;
+        }
 
         const formData = new FormData(form);
         const nombre = formData.get("nombre");
         const telefono = formData.get("telefono");
 
         try {
-            const res = await fetch(`/api/aprendiz/${aprendizId}`, {
+            const res = await fetchAutenticado(`${apiUrl}/aprendiz/${aprendizId}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ nombre, telefono })
+                body: JSON.stringify({ nombre, telefono }),
             });
 
             if (!res.ok) {
@@ -223,13 +284,11 @@ const { aprendiz } = Astro.props;
 
             // recarga la página para reflejar los cambios
             window.location.reload();
-
         } catch (err) {
             alert("Ocurrió un error al guardar los cambios.");
             console.error(err);
         }
     });
-
 </script>
 
 <style>

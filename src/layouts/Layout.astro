@@ -1,13 +1,31 @@
 ---
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import Sidebar from '../components/sidebar.astro';
+import NavbarUsuario from '../components/navbarusuario.astro';
 
+interface SidebarLink {
+	text: string;
+	href: string;
+	icon: string;
+}
 
 interface Props {
 	title?: string;
+	/** Si se pasan links, el Layout monta sidebar + navbar (paneles internos). */
+	links?: SidebarLink[];
+	subtitulo?: string;
+	/**
+	 * Roles (idRol) que pueden ver esta página. Si el usuario logueado no
+	 * tiene un rol permitido, se lo redirige a su propio panel.
+	 * Solo tiene efecto en páginas con `links` (con sidebar/navbar).
+	 */
+	rolesPermitidos?: number[];
 }
 
-const { title = 'Asistencias SENA' } = Astro.props;
+const { title = 'Asistencias SENA', links, subtitulo = 'Usuario', rolesPermitidos } = Astro.props;
+const conChrome = Array.isArray(links) && links.length > 0;
+const rolesJson = JSON.stringify(rolesPermitidos ?? []);
 ---
 
 <!doctype html>
@@ -28,9 +46,60 @@ const { title = 'Asistencias SENA' } = Astro.props;
 		/>
 	</head>
 	<body>
-		<slot />
+		{conChrome ? (
+			<div class="app-shell" data-roles-permitidos={rolesJson}>
+				<Sidebar links={links!} />
+				<div class="app-main">
+					<NavbarUsuario aprendiz={{ nombre: '', apellido: '' }} subtitulo={subtitulo} />
+					<div class="app-content">
+						<slot />
+					</div>
+				</div>
+			</div>
+		) : (
+			<slot />
+		)}
 	</body>
 </html>
+
+<script>
+	// Cablea el sidebar/navbar con la sesión real y protege el panel por rol.
+	// Solo corre si el Layout montó el "chrome" (sidebar+navbar), es decir,
+	// si la página pasó `links` como prop.
+	import { exigirSesion, exigirRol } from '../lib/auth.ts';
+
+	const shell = document.querySelector<HTMLElement>('.app-shell');
+
+	if (shell) {
+		const rolesPermitidos: number[] = JSON.parse(shell.dataset.rolesPermitidos ?? '[]');
+
+		const sesion = rolesPermitidos.length > 0
+			? exigirRol(rolesPermitidos)
+			: exigirSesion();
+
+		if (sesion) {
+			const { usuario } = sesion;
+			const nombreEl = shell.querySelector('.profile-info .name');
+			const avatarEl = shell.querySelector('.avatar');
+			if (nombreEl) nombreEl.textContent = usuario.nombre;
+			if (avatarEl) avatarEl.textContent = `${usuario.nombre.charAt(0)}${usuario.apellido.charAt(0)}`;
+		}
+
+		// Toggle del sidebar en móvil (el botón existía pero no tenía listener).
+		const menuBtn = document.getElementById('menu-toggle');
+		const sidebar = document.getElementById('sidebar');
+		const backdrop = document.getElementById('sidebar-backdrop');
+
+		menuBtn?.addEventListener('click', () => {
+			sidebar?.classList.toggle('open');
+			backdrop?.classList.toggle('show');
+		});
+		backdrop?.addEventListener('click', () => {
+			sidebar?.classList.remove('open');
+			backdrop?.classList.remove('show');
+		});
+	}
+</script>
 
 <style is:global>
 	:root {
@@ -77,6 +146,30 @@ const { title = 'Asistencias SENA' } = Astro.props;
 			animation-duration: 0.001ms !important;
 			animation-iteration-count: 1 !important;
 			transition-duration: 0.001ms !important;
+		}
+	}
+
+	/* Paneles internos: sidebar fija (260px, ver sidebar.astro) + contenido. */
+	.app-shell {
+		display: flex;
+		min-height: 100vh;
+	}
+
+	.app-main {
+		flex: 1;
+		min-width: 0;
+		margin-left: 260px;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.app-content {
+		flex: 1;
+	}
+
+	@media (max-width: 900px) {
+		.app-main {
+			margin-left: 0;
 		}
 	}
 </style>

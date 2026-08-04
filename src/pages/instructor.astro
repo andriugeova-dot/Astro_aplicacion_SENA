@@ -1,10 +1,12 @@
 ---
-import LayoutUsuariosAstroComponent from "../layouts/layoutUsuarios.astro";
+import Layout from "../layouts/Layout.astro";
 import DashboardInstructor from "../components/instructor.astro";
 
+// El nombre real del instructor se llena en el cliente a partir de la
+// sesión (ver el script más abajo); esto es solo el placeholder de SSR.
 const instructor = {
-  nombre: "Carlos",
-  apellido: "Gómez",
+  nombre: "",
+  apellido: "",
 };
 
 const links = [
@@ -12,12 +14,22 @@ const links = [
   { text: "Fichas", href: "/instructor/fichas", icon: "bi-people-fill" },
   { text: "Horario", href: "/instructor/horario", icon: "bi-calendar3" },
   { text: "Asistencia", href: "/instructor/asistencia", icon: "bi-clipboard2-check-fill" },
- 
   { text: "Aprendices", href: "/instructor/aprendices", icon: "bi-people-fill" },
- 
 ];
 ---
 
-<LayoutUsuariosAstroComponent title="Panel del Instructor" links={links} aprendiz={instructor} subtitulo="Instructor">
+<!-- rolesPermitidos={[2]}: solo instructores (idRol 2) pueden ver este panel;
+     cualquier otro rol es redirigido a su propio panel automáticamente. -->
+<Layout title="Panel del Instructor" links={links} subtitulo="Instructor" rolesPermitidos={[2]}>
   <DashboardInstructor instructor={instructor} />
-</LayoutUsuariosAstroComponent>
+</Layout>
+
+<script>
+  import { obtenerSesion } from "../lib/auth.ts";
+
+  const sesion = obtenerSesion();
+  if (sesion) {
+    const el = document.getElementById("nombre-instructor");
+    if (el) el.textContent = `${sesion.usuario.nombre} ${sesion.usuario.apellido}`;
+  }
+</script>

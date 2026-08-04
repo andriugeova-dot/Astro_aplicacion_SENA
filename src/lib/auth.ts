@@ -30,6 +30,19 @@ export const NOMBRES_ROL: Record<number, string> = {
   3: "Administrador",
 };
 
+// A dónde debe ir cada rol justo después de iniciar sesión
+// (1 = aprendiz, 2 = instructor, 3 = admin).
+export const RUTA_POR_ROL: Record<number, string> = {
+  1: "/usuario",
+  2: "/instructor",
+  3: "/dashboard",
+};
+
+/** Ruta del panel que le corresponde a un rol. Cae a /dashboard si el rol no está mapeado. */
+export function obtenerRutaPorRol(idRol: number): string {
+  return RUTA_POR_ROL[idRol] ?? "/dashboard";
+}
+
 /** Guarda el token + usuario devueltos por /login o /registro. */
 export function guardarSesion(sesion: Sesion): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(sesion));
@@ -67,6 +80,23 @@ export function exigirSesion(): Sesion | null {
   const sesion = obtenerSesion();
   if (!sesion) {
     window.location.href = "/login";
+    return null;
+  }
+  return sesion;
+}
+
+/**
+ * Exige sesión activa Y que el rol esté en `rolesPermitidos`.
+ * - Sin sesión -> redirige a /login.
+ * - Con sesión pero rol incorrecto -> redirige al panel que sí le corresponde.
+ * Devuelve la sesión si todo está en orden, o null (y ya disparó el redirect).
+ */
+export function exigirRol(rolesPermitidos: number[]): Sesion | null {
+  const sesion = exigirSesion();
+  if (!sesion) return null;
+
+  if (!rolesPermitidos.includes(sesion.usuario.idRol)) {
+    window.location.href = obtenerRutaPorRol(sesion.usuario.idRol);
     return null;
   }
   return sesion;

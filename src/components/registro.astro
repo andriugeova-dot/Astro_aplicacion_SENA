@@ -138,6 +138,13 @@ const apiUrl = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:8002';
 	</section>
 </div>
 
+<script define:vars={{ apiUrl }}>
+    document.documentElement.dataset.apiUrl = apiUrl;
+</script>
+
+<script type="module">
+    import "../scripts/registro.ts";
+</script>
 
 
 <style>

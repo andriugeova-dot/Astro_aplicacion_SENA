@@ -11,8 +11,9 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
-	import { haySesionActiva } from '../lib/auth.ts';
-	window.location.replace(haySesionActiva() ? '/dashboard' : '/login');
+	import { obtenerSesion, obtenerRutaPorRol } from '../lib/auth.ts';
+	const sesion = obtenerSesion();
+	window.location.replace(sesion ? obtenerRutaPorRol(sesion.usuario.idRol) : '/login');
 </script>
 
 <style>

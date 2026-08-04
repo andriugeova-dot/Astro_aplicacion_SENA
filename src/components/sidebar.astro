@@ -27,16 +27,53 @@ const currentPath = Astro.url.pathname;
     })}
   </nav>
 
-  <div class="sidebar-footer">
-    <img src="/sena-logo.png" alt="SENA" class="sena-logo" />
-    <p>Dirección de Formación<br />Profesional Integral</p>
-  </div>
+<div class="sidebar-footer">
+  <img src="/sena-logo.png" alt="SENA" class="sena-logo" />
+  <p>Dirección de Formación<br />Profesional Integral</p>
+
+  <button id="btn-cerrar-sesion" class="btn-cerrar-sesion">
+    <i class="bi bi-box-arrow-right"></i>
+    <span>Cerrar sesión</span>
+  </button>
+</div>
 
 </aside>
 
 <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
+
+<script type="module">
+  import "../scripts/sidebar.ts";
+</script>
+
 <style>
+
+
+.btn-cerrar-sesion{
+  margin-top:20px;
+  width:100%;
+  border:none;
+  border-radius:10px;
+  padding:12px 16px;
+  background:#dc3545;
+  color:white;
+  font-size:.95rem;
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.btn-cerrar-sesion:hover{
+  background:#bb2d3b;
+}
+
+.btn-cerrar-sesion i{
+  font-size:1rem;
+}
 
 .sidebar{
   position:fixed;
