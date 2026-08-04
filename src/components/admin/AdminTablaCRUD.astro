@@ -1,0 +1,356 @@
+---
+// src/components/admin/AdminTablaCRUD.astro
+//
+// Tabla dinámica genérica (AgGrid) con CRUD completo, reutilizada por todas
+// las páginas /admin/*. Cada página solo pasa su configuración por props;
+// toda la lógica vive en src/scripts/agGridCrud.ts.
+
+export interface OpcionSelect {
+  value: string | number;
+  label: string;
+}
+
+export interface FuenteRemota {
+  endpoint: string;
+  valueField: string;
+  labelField: string;
+}
+
+export interface CampoFormulario {
+  field: string;
+  label: string;
+  type: "text" | "email" | "password" | "number" | "select" | "textarea" | "time";
+  required?: boolean;
+  opciones?: OpcionSelect[];
+  fuenteRemota?: FuenteRemota;
+  ayuda?: string;
+}
+
+export interface ColumnaGrid {
+  field: string;
+  headerName: string;
+  minWidth?: number;
+}
+
+interface Props {
+  titulo: string;
+  descripcion: string;
+  entidadSingular: string;
+  endpoint: string;
+  idField: string;
+  columnas: ColumnaGrid[];
+  camposFormulario: CampoFormulario[];
+}
+
+const {
+  titulo,
+  descripcion,
+  entidadSingular,
+  endpoint,
+  idField,
+  columnas,
+  camposFormulario,
+} = Astro.props;
+
+const config = {
+  contenedorId: "grid-container",
+  endpoint,
+  idField,
+  entidadSingular,
+  columnas,
+  camposFormulario,
+};
+
+const AG_GRID_VERSION = "32.2.1";
+---
+
+<link rel="stylesheet" href={`https://cdn.jsdelivr.net/npm/ag-grid-community@${AG_GRID_VERSION}/styles/ag-grid.css`} />
+<link rel="stylesheet" href={`https://cdn.jsdelivr.net/npm/ag-grid-community@${AG_GRID_VERSION}/styles/ag-theme-quartz.css`} />
+<script is:inline src={`https://cdn.jsdelivr.net/npm/ag-grid-community@${AG_GRID_VERSION}/dist/ag-grid-community.min.js`}></script>
+<script is:inline src={`https://cdn.jsdelivr.net/npm/ag-grid-enterprise@${AG_GRID_VERSION}/dist/ag-grid-enterprise.min.js`}></script>
+
+<div class="admin-crud">
+  <div class="admin-crud-header">
+    <div>
+      <h2>{titulo}</h2>
+      <p>{descripcion}</p>
+    </div>
+    <div class="admin-crud-acciones">
+      <button type="button" id="btn-exportar-csv" class="btn-secundario">
+        <i class="bi bi-filetype-csv"></i> CSV
+      </button>
+      <button type="button" id="btn-exportar-excel" class="btn-secundario">
+        <i class="bi bi-file-earmark-excel"></i> Excel
+      </button>
+      <button type="button" id="btn-nuevo" class="btn-primario">
+        <i class="bi bi-plus-lg"></i> Nuevo {entidadSingular}
+      </button>
+    </div>
+  </div>
+
+  <div id="alerta-tabla" class="alerta-tabla d-none"></div>
+
+  <div id="grid-container" class="ag-theme-quartz grid-container"></div>
+</div>
+
+<div class="modal-overlay d-none" id="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-box-header">
+      <h3 id="modal-titulo">Nuevo {entidadSingular}</h3>
+      <button type="button" id="btn-cerrar-modal" class="btn-cerrar-modal" aria-label="Cerrar">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <form id="form-crud">
+      <div id="campos-formulario" class="campos-formulario"></div>
+      <div id="error-formulario" class="error-formulario d-none"></div>
+      <div class="modal-box-footer">
+        <button type="button" id="btn-cancelar" class="btn-secundario">Cancelar</button>
+        <button type="submit" class="btn-primario">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script type="module" define:vars={{ config }}>
+  window.__crudConfig = config;
+</script>
+
+<script>
+  import { iniciarCRUD } from "../../scripts/agGridCrud";
+
+  const config = (window as unknown as { __crudConfig?: unknown }).__crudConfig;
+  if (config) {
+    // deno-lint-ignore no-explicit-any
+    iniciarCRUD(config as any);
+  }
+</script>
+
+<style>
+  .admin-crud {
+    padding: 30px 35px;
+    max-width: 1500px;
+    margin: 0 auto;
+  }
+
+  .admin-crud-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+
+  .admin-crud-header h2 {
+    font-size: 1.4rem;
+    color: #1f2937;
+    margin-bottom: 4px;
+  }
+
+  .admin-crud-header p {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  .admin-crud-acciones {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .btn-primario,
+  .btn-secundario {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: 0.2s;
+  }
+
+  .btn-primario {
+    background: #39a900;
+    color: white;
+  }
+
+  .btn-primario:hover {
+    background: #2f8a00;
+  }
+
+  .btn-secundario {
+    background: white;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+  }
+
+  .btn-secundario:hover {
+    background: #f3f4f6;
+  }
+
+  .alerta-tabla {
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 0.88rem;
+    font-weight: 500;
+  }
+
+  .alerta-tabla.alerta-danger {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+
+  .alerta-tabla.alerta-success {
+    background: #dcfce7;
+    color: #15803d;
+  }
+
+  .grid-container {
+    height: 620px;
+    width: 100%;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+  }
+
+  :global(.acciones-celda) {
+    display: flex;
+    gap: 8px;
+    height: 100%;
+    align-items: center;
+  }
+
+  :global(.btn-accion) {
+    border: none;
+    background: #f3f4f6;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #374151;
+  }
+
+  :global(.btn-accion.btn-editar:hover) {
+    background: #dbeafe;
+    color: #2563eb;
+  }
+
+  :global(.btn-accion.btn-eliminar:hover) {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+
+  .d-none {
+    display: none !important;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 20px;
+  }
+
+  .modal-box {
+    background: white;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 24px;
+  }
+
+  .modal-box-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+
+  .modal-box-header h3 {
+    font-size: 1.1rem;
+    color: #1f2937;
+    margin: 0;
+  }
+
+  .btn-cerrar-modal {
+    border: none;
+    background: none;
+    font-size: 1.1rem;
+    color: #6b7280;
+    cursor: pointer;
+  }
+
+  .campos-formulario {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .campo-form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: #374151;
+    font-weight: 500;
+  }
+
+  .campo-form input,
+  .campo-form select,
+  .campo-form textarea {
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: 0.9rem;
+    font-family: inherit;
+  }
+
+  .campo-ayuda {
+    color: #9ca3af;
+    font-weight: 400;
+    font-size: 0.75rem;
+  }
+
+  .error-formulario {
+    background: #fee2e2;
+    color: #b91c1c;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 0.82rem;
+    margin-top: 14px;
+  }
+
+  .modal-box-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  @media (max-width: 640px) {
+    .admin-crud {
+      padding: 20px;
+    }
+
+    .grid-container {
+      height: 480px;
+    }
+  }
+</style>

@@ -1,0 +1,49 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import AdminTablaCRUD from "../../components/admin/AdminTablaCRUD.astro";
+
+const links = [
+  { text: "Dashboard", href: "/admin", icon: "bi-house-door-fill" },
+  { text: "Usuarios", href: "/admin/usuarios", icon: "bi-people-fill" },
+  { text: "Fichas", href: "/admin/fichas", icon: "bi-journal-bookmark-fill" },
+  { text: "Programas", href: "/admin/programas", icon: "bi-mortarboard-fill" },
+  { text: "Asignaturas", href: "/admin/asignaturas", icon: "bi-book-fill" },
+  { text: "Horarios", href: "/admin/horarios", icon: "bi-calendar3" },
+  { text: "Roles", href: "/admin/roles", icon: "bi-shield-lock-fill" },
+];
+---
+
+<Layout title="Horarios | Panel Admin" links={links} subtitulo="admin" rolesPermitidos={[3]}>
+  <AdminTablaCRUD
+    titulo="Horarios"
+    descripcion="Administra los bloques de horario disponibles para las fichas."
+    entidadSingular="Horario"
+    endpoint="/horario"
+    idField="idHorario"
+    columnas={[
+      { field: "idHorario", headerName: "ID", minWidth: 90 },
+      { field: "diaSemana", headerName: "Día", minWidth: 140 },
+      { field: "horaInicio", headerName: "Hora inicio", minWidth: 140 },
+      { field: "horaFin", headerName: "Hora fin", minWidth: 140 },
+    ]}
+    camposFormulario={[
+      {
+        field: "diaSemana",
+        label: "Día de la semana",
+        type: "select",
+        required: true,
+        opciones: [
+          { value: "Lunes", label: "Lunes" },
+          { value: "Martes", label: "Martes" },
+          { value: "Miércoles", label: "Miércoles" },
+          { value: "Jueves", label: "Jueves" },
+          { value: "Viernes", label: "Viernes" },
+          { value: "Sábado", label: "Sábado" },
+          { value: "Domingo", label: "Domingo" },
+        ],
+      },
+      { field: "horaInicio", label: "Hora de inicio", type: "time", required: true },
+      { field: "horaFin", label: "Hora de fin", type: "time", required: true },
+    ]}
+  />
+</Layout>

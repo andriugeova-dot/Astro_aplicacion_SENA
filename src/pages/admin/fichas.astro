@@ -1,0 +1,53 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import AdminTablaCRUD from "../../components/admin/AdminTablaCRUD.astro";
+
+const links = [
+  { text: "Dashboard", href: "/admin", icon: "bi-house-door-fill" },
+  { text: "Usuarios", href: "/admin/usuarios", icon: "bi-people-fill" },
+  { text: "Fichas", href: "/admin/fichas", icon: "bi-journal-bookmark-fill" },
+  { text: "Programas", href: "/admin/programas", icon: "bi-mortarboard-fill" },
+  { text: "Asignaturas", href: "/admin/asignaturas", icon: "bi-book-fill" },
+  { text: "Horarios", href: "/admin/horarios", icon: "bi-calendar3" },
+  { text: "Roles", href: "/admin/roles", icon: "bi-shield-lock-fill" },
+];
+---
+
+<Layout title="Fichas | Panel Admin" links={links} subtitulo="admin" rolesPermitidos={[3]}>
+  <AdminTablaCRUD
+    titulo="Fichas"
+    descripcion="Administra las fichas de formación y su programa asociado."
+    entidadSingular="Ficha"
+    endpoint="/ficha"
+    idField="idFicha"
+    columnas={[
+      { field: "idFicha", headerName: "ID", minWidth: 90 },
+      { field: "numeroFicha", headerName: "Número de ficha", minWidth: 160 },
+      { field: "jornada", headerName: "Jornada" },
+      { field: "idPrograma", headerName: "Programa", minWidth: 200 },
+    ]}
+    camposFormulario={[
+      { field: "numeroFicha", label: "Número de ficha", type: "text", required: true },
+      {
+        field: "jornada",
+        label: "Jornada",
+        type: "select",
+        required: true,
+        opciones: [
+          { value: "Mañana", label: "Mañana" },
+          { value: "Tarde", label: "Tarde" },
+          { value: "Noche", label: "Noche" },
+          { value: "Madrugada", label: "Madrugada" },
+          { value: "Mixta", label: "Mixta" },
+        ],
+      },
+      {
+        field: "idPrograma",
+        label: "Programa",
+        type: "select",
+        required: true,
+        fuenteRemota: { endpoint: "/programa", valueField: "idPrograma", labelField: "nombrePrograma" },
+      },
+    ]}
+  />
+</Layout>

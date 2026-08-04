@@ -1,0 +1,50 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import AdminTablaCRUD from "../../components/admin/AdminTablaCRUD.astro";
+
+const links = [
+  { text: "Dashboard", href: "/admin", icon: "bi-house-door-fill" },
+  { text: "Usuarios", href: "/admin/usuarios", icon: "bi-people-fill" },
+  { text: "Fichas", href: "/admin/fichas", icon: "bi-journal-bookmark-fill" },
+  { text: "Programas", href: "/admin/programas", icon: "bi-mortarboard-fill" },
+  { text: "Asignaturas", href: "/admin/asignaturas", icon: "bi-book-fill" },
+  { text: "Horarios", href: "/admin/horarios", icon: "bi-calendar3" },
+  { text: "Roles", href: "/admin/roles", icon: "bi-shield-lock-fill" },
+];
+---
+
+<Layout title="Usuarios | Panel Admin" links={links} subtitulo="admin" rolesPermitidos={[3]}>
+  <AdminTablaCRUD
+    titulo="Usuarios"
+    descripcion="Administra las cuentas de acceso: aprendices, instructores y administradores."
+    entidadSingular="Usuario"
+    endpoint="/usuario"
+    idField="idUsuario"
+    columnas={[
+      { field: "idUsuario", headerName: "ID", minWidth: 90 },
+      { field: "nombre", headerName: "Nombre" },
+      { field: "apellido", headerName: "Apellido" },
+      { field: "correo", headerName: "Correo", minWidth: 200 },
+      { field: "idRol", headerName: "Rol", minWidth: 160 },
+    ]}
+    camposFormulario={[
+      { field: "nombre", label: "Nombre", type: "text", required: true },
+      { field: "apellido", label: "Apellido", type: "text", required: true },
+      { field: "correo", label: "Correo", type: "email", required: true },
+      {
+        field: "password",
+        label: "Contraseña",
+        type: "password",
+        required: true,
+        ayuda: "Mínimo 6 caracteres.",
+      },
+      {
+        field: "idRol",
+        label: "Rol",
+        type: "select",
+        required: true,
+        fuenteRemota: { endpoint: "/rol", valueField: "idRol", labelField: "nombreRol" },
+      },
+    ]}
+  />
+</Layout>
