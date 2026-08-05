@@ -1,0 +1,58 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import AdminTablaCRUD from "../../components/admin/AdminTablaCRUD.astro";
+
+const links = [
+  { text: "Dashboard", href: "/admin", icon: "bi-house-door-fill" },
+  { text: "Usuarios", href: "/admin/usuarios", icon: "bi-people-fill" },
+  { text: "Aprendices", href: "/admin/aprendices", icon: "bi-person-badge-fill" },
+  { text: "Fichas", href: "/admin/fichas", icon: "bi-journal-bookmark-fill" },
+  { text: "Programas", href: "/admin/programas", icon: "bi-mortarboard-fill" },
+  { text: "Asignaturas", href: "/admin/asignaturas", icon: "bi-book-fill" },
+  { text: "Horarios", href: "/admin/horarios", icon: "bi-calendar3" },
+  { text: "Bloques (HFA)", href: "/admin/hfa", icon: "bi-diagram-3-fill" },
+  { text: "Roles", href: "/admin/roles", icon: "bi-shield-lock-fill" },
+];
+---
+
+<Layout title="Aprendices | Panel Admin" links={links} subtitulo="admin" rolesPermitidos={[3]}>
+  <AdminTablaCRUD
+    titulo="Aprendices"
+    descripcion="Administra los aprendices y la ficha a la que pertenecen."
+    entidadSingular="Aprendiz"
+    endpoint="/aprendiz"
+    idField="idAprendiz"
+    columnas={[
+      { field: "idAprendiz", headerName: "ID", minWidth: 90 },
+      { field: "idUsuario", headerName: "Usuario", minWidth: 100 },
+      { field: "documento", headerName: "Documento", minWidth: 140 },
+      { field: "nombre", headerName: "Nombre" },
+      { field: "apellido", headerName: "Apellido" },
+      { field: "correo", headerName: "Correo", minWidth: 200 },
+      { field: "telefono", headerName: "Teléfono", minWidth: 140 },
+      { field: "idFicha", headerName: "Ficha", minWidth: 160 },
+    ]}
+    camposFormulario={[
+      {
+        field: "idUsuario",
+        label: "Usuario",
+        type: "select",
+        required: true,
+        ayuda: "Solo aparecen usuarios con rol Aprendiz que todavía no tienen ficha creada.",
+        fuenteRemota: { endpoint: "/usuario/rol/1", valueField: "idUsuario", labelField: "correo" },
+      },
+      { field: "documento", label: "Documento", type: "text", required: true },
+      { field: "nombre", label: "Nombre", type: "text", required: true },
+      { field: "apellido", label: "Apellido", type: "text", required: true },
+      { field: "correo", label: "Correo", type: "email", required: true },
+      { field: "telefono", label: "Teléfono", type: "text", required: true },
+      {
+        field: "idFicha",
+        label: "Ficha",
+        type: "select",
+        required: true,
+        fuenteRemota: { endpoint: "/ficha", valueField: "idFicha", labelField: "numeroFicha" },
+      },
+    ]}
+  />
+</Layout>
