@@ -51,42 +51,7 @@ const acciones = [
       <span>{fecha}</span>
     </div>
   </section>
-
-  <!-- STATS -->
-  <section class="stats-grid">
-    {stats.map(stat => (
-      <div class="stat-card">
-        <div class="stat-icon">
-          <i class={`bi ${stat.icon}`}></i>
-        </div>
-        <div class="stat-info">
-          <span class="stat-title">{stat.titulo}</span>
-          <h3>{stat.valor}</h3>
-          <span class="stat-label">{stat.label}</span>
-        </div>
-      </div>
-    ))}
-  </section>
-  <!-- ACCIONES -->
-  <section class="acciones-section">
-
-    <div class="card">
-      <div class="card-header">
-        <h3><i class="bi bi-lightning-fill"></i> Acciones rápidas</h3>
-      </div>
-
-      <div class="acciones-grid">
-        {acciones.map(accion => (
-          <button class="accion-btn">
-            <i class={`bi ${accion.icon}`}></i>
-            <span>{accion.texto}</span>
-          </button>
-        ))}
-      </div>
-    </div>
-
-  </section>
-
+ 
 </div>
 
 <style>
