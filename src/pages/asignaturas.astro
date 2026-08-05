@@ -1,0 +1,78 @@
+---
+import Layout from "../layouts/Layout.astro";
+import AdminTablaCRUD from "../components/admin/AdminTablaCRUD.astro";
+
+const links = [
+  { text: "Dashboard", href: "/usuario", icon: "bi-house-door-fill" },
+  { text: "Horario", href: "/horario", icon: "bi-calendar3" },
+  { text: "Asignaturas", href: "/asignaturas", icon: "bi-journal-bookmark-fill" },
+  { text: "Asistencia", href: "/asistencia", icon: "bi-clipboard2-check-fill" },
+];
+---
+
+<!-- rolesPermitidos={[1]}: solo aprendices. Mismo AdminTablaCRUD que usa el
+     admin, en modo soloLectura, cargando el endpoint una vez que sabemos
+     el idFicha del aprendiz logueado (vía GET /aprendiz/miperfil). -->
+<Layout title="Mis Asignaturas" links={links} subtitulo="Aprendiz" rolesPermitidos={[1]}>
+  <p id="mensaje-sin-ficha" class="mensaje d-none">
+    Todavía no tienes una ficha asignada. Cuando un administrador te la asigne, aquí verás tus asignaturas.
+  </p>
+
+  <AdminTablaCRUD
+    titulo="Mis asignaturas"
+    descripcion="Asignaturas que se dictan en tu ficha, con su horario."
+    entidadSingular="Asignatura"
+    endpoint="/hfa/ficha/0"
+    idField="idHFA"
+    soloLectura={true}
+    autoIniciar={false}
+    columnas={[
+      { field: "nombreAsignatura", headerName: "Asignatura", minWidth: 220 },
+      { field: "diaSemana", headerName: "Día", minWidth: 130 },
+      { field: "horaInicio", headerName: "Hora inicio", minWidth: 130 },
+      { field: "horaFin", headerName: "Hora fin", minWidth: 130 },
+    ]}
+    camposFormulario={[]}
+  />
+</Layout>
+
+<script>
+  import { obtenerSesion, fetchAutenticado } from "../lib/auth.ts";
+  import { iniciarCRUD } from "../scripts/agGridCrud.ts";
+
+  const API_URL = import.meta.env.PUBLIC_API_URL ?? "http://localhost:8002";
+  const sesion = obtenerSesion();
+  const mensajeSinFicha = document.getElementById("mensaje-sin-ficha")!;
+
+  (async () => {
+    if (!sesion) return;
+
+    const respuesta = await fetchAutenticado(`${API_URL}/aprendiz/miperfil`);
+    if (!respuesta.ok) {
+      mensajeSinFicha.classList.remove("d-none");
+      return;
+    }
+
+    const perfil = await respuesta.json();
+    if (!perfil.idFicha) {
+      mensajeSinFicha.classList.remove("d-none");
+      return;
+    }
+
+    const config = (window as unknown as { __crudConfig?: Record<string, unknown> }).__crudConfig;
+    if (!config) return;
+    await iniciarCRUD({ ...config, endpoint: `/hfa/ficha/${perfil.idFicha}` } as never);
+  })();
+</script>
+
+<style>
+  .mensaje {
+    margin: 20px 35px 0;
+    background: #fef3c7;
+    color: #92400e;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.88rem;
+  }
+  .d-none { display: none !important; }
+</style>

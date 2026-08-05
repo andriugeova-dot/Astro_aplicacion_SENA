@@ -1,0 +1,226 @@
+---
+import Layout from "../../layouts/Layout.astro";
+
+const links = [
+  { text: "Dashboard", href: "/instructor", icon: "bi-house-door-fill" },
+  { text: "Ficha", href: "/instructor/ficha", icon: "bi-people-fill" },
+  { text: "Horario", href: "/instructor/horario", icon: "bi-calendar3" },
+  { text: "Asistencia", href: "/instructor/asistencia", icon: "bi-clipboard2-check-fill" },
+  { text: "Aprendices", href: "/instructor/aprendices", icon: "bi-people-fill" },
+];
+---
+
+<!-- Esta vista NO reutiliza el ag-grid CRUD: es una toma de asistencia
+     (formulario), no una tabla editable genérica. El backend
+     (asistenciaController.ts) igual valida que el bloque/ficha elegidos
+     pertenezcan al instructor logueado, así que aunque alguien manipulara
+     el HTML no podría marcar asistencia fuera de sus fichas asignadas. -->
+<Layout title="Marcar asistencia | Instructor" links={links} subtitulo="Instructor" rolesPermitidos={[2]}>
+  <div class="contenedor">
+    <h2>Marcar asistencia</h2>
+    <p class="ayuda">Elige tu ficha, el bloque de clase y la fecha; luego marca el estado de cada aprendiz.</p>
+
+    <div id="alerta" class="alerta d-none"></div>
+
+    <div class="filtros">
+      <label>
+        Ficha
+        <select id="select-ficha"></select>
+      </label>
+      <label>
+        Bloque (asignatura / horario)
+        <select id="select-bloque"></select>
+      </label>
+      <label>
+        Fecha
+        <input type="date" id="input-fecha" />
+      </label>
+    </div>
+
+    <p id="mensaje-sin-fichas" class="d-none">Todavía no tienes fichas asignadas. Pide a un admin que te asigne una.</p>
+
+    <table id="tabla-asistencia" class="d-none">
+      <thead>
+        <tr>
+          <th>Documento</th>
+          <th>Aprendiz</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody id="cuerpo-tabla"></tbody>
+    </table>
+
+    <button type="button" id="btn-guardar" class="btn-guardar d-none">
+      <i class="bi bi-check2-circle"></i> Guardar asistencia
+    </button>
+  </div>
+</Layout>
+
+<script>
+  import { obtenerSesion, fetchAutenticado } from "../../lib/auth.ts";
+
+  const API_URL = import.meta.env.PUBLIC_API_URL ?? "http://localhost:8002";
+  const sesion = obtenerSesion();
+
+  const selectFicha = document.getElementById("select-ficha") as HTMLSelectElement;
+  const selectBloque = document.getElementById("select-bloque") as HTMLSelectElement;
+  const inputFecha = document.getElementById("input-fecha") as HTMLInputElement;
+  const mensajeSinFichas = document.getElementById("mensaje-sin-fichas")!;
+  const tabla = document.getElementById("tabla-asistencia")!;
+  const cuerpoTabla = document.getElementById("cuerpo-tabla")!;
+  const btnGuardar = document.getElementById("btn-guardar") as HTMLButtonElement;
+  const alerta = document.getElementById("alerta")!;
+
+  const ESTADOS = ["Presente", "Ausente", "Tarde", "Justificado"];
+
+  interface Ficha { idFicha: number; numeroFicha: string; jornada: string; }
+  interface Bloque { idHFA: number; diaSemana: string; horaInicio: string; horaFin: string; nombreAsignatura: string; }
+  interface AprendizFila { idAprendiz: number; documento: string; nombre: string; apellido: string; }
+
+  let bloquesFichaActual: Bloque[] = [];
+
+  function mostrarAlerta(mensaje: string, tipo: "success" | "danger" = "danger") {
+    alerta.textContent = mensaje;
+    alerta.className = `alerta alerta-${tipo}`;
+    setTimeout(() => alerta.classList.add("d-none"), 4000);
+  }
+
+  async function cargarBloquesDeFicha(idFicha: string) {
+    const respuesta = await fetchAutenticado(`${API_URL}/hfa/ficha/${idFicha}`);
+    bloquesFichaActual = respuesta.ok ? await respuesta.json() : [];
+    selectBloque.innerHTML = bloquesFichaActual
+      .map((b) => `<option value="${b.idHFA}">${b.diaSemana} ${b.horaInicio}-${b.horaFin} · ${b.nombreAsignatura}</option>`)
+      .join("");
+  }
+
+  async function cargarAprendicesDeFicha(idFicha: string) {
+    const respuesta = await fetchAutenticado(`${API_URL}/aprendiz/ficha/${idFicha}`);
+    const aprendices: AprendizFila[] = respuesta.ok ? await respuesta.json() : [];
+
+    if (aprendices.length === 0) {
+      cuerpoTabla.innerHTML = `<tr><td colspan="3">Esta ficha todavía no tiene aprendices.</td></tr>`;
+    } else {
+      cuerpoTabla.innerHTML = aprendices
+        .map(
+          (a) => `
+        <tr data-id-aprendiz="${a.idAprendiz}">
+          <td>${a.documento ?? "—"}</td>
+          <td>${a.nombre} ${a.apellido}</td>
+          <td>
+            <select class="select-estado">
+              ${ESTADOS.map((e) => `<option value="${e}" ${e === "Presente" ? "selected" : ""}>${e}</option>`).join("")}
+            </select>
+          </td>
+        </tr>`,
+        )
+        .join("");
+    }
+
+    tabla.classList.remove("d-none");
+    btnGuardar.classList.remove("d-none");
+  }
+
+  async function alCambiarFicha() {
+    const idFicha = selectFicha.value;
+    if (!idFicha) return;
+    await Promise.all([cargarBloquesDeFicha(idFicha), cargarAprendicesDeFicha(idFicha)]);
+  }
+
+  btnGuardar.addEventListener("click", async () => {
+    const idHFA = Number(selectBloque.value);
+    const fecha = inputFecha.value;
+
+    if (!idHFA || !fecha) {
+      mostrarAlerta("Elige el bloque de clase y la fecha antes de guardar.");
+      return;
+    }
+
+    const filas = Array.from(cuerpoTabla.querySelectorAll("tr[data-id-aprendiz]"));
+    if (filas.length === 0) return;
+
+    btnGuardar.disabled = true;
+    let errores = 0;
+
+    for (const fila of filas) {
+      const idAprendiz = Number((fila as HTMLElement).dataset.idAprendiz);
+      const estado = (fila.querySelector(".select-estado") as HTMLSelectElement).value;
+
+      try {
+        const respuesta = await fetchAutenticado(`${API_URL}/asistencia`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idAprendiz, idHFA, fecha, estado }),
+        });
+        if (!respuesta.ok) errores++;
+      } catch {
+        errores++;
+      }
+    }
+
+    btnGuardar.disabled = false;
+
+    if (errores === 0) {
+      mostrarAlerta("Asistencia guardada correctamente.", "success");
+    } else {
+      mostrarAlerta(`Se guardaron ${filas.length - errores} de ${filas.length}. Revisa e intenta de nuevo con los que fallaron.`);
+    }
+  });
+
+  (async () => {
+    if (!sesion) return;
+
+    inputFecha.value = new Date().toISOString().slice(0, 10);
+
+    const respuesta = await fetchAutenticado(`${API_URL}/instructor/fichas/${sesion.usuario.idUsuario}`);
+    const fichas: Ficha[] = respuesta.ok ? await respuesta.json() : [];
+
+    if (fichas.length === 0) {
+      mensajeSinFichas.classList.remove("d-none");
+      return;
+    }
+
+    selectFicha.innerHTML = fichas
+      .map((f) => `<option value="${f.idFicha}">${f.numeroFicha} — ${f.jornada}</option>`)
+      .join("");
+
+    selectFicha.addEventListener("change", alCambiarFicha);
+    await alCambiarFicha();
+  })();
+</script>
+
+<style>
+  .contenedor { padding: 30px 35px; max-width: 1100px; margin: 0 auto; }
+  h2 { color: #1f2937; margin-bottom: 4px; }
+  .ayuda { color: #6b7280; font-size: 0.9rem; margin-bottom: 20px; }
+
+  .filtros { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; }
+  .filtros label { display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem; color: #374151; font-weight: 500; }
+  .filtros select, .filtros input { border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; font-family: inherit; min-width: 220px; }
+
+  table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,.04); }
+  th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #f3f4f6; }
+  th { background: #39A900; color: white; font-size: 0.85rem; }
+  td select { border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 10px; font-family: inherit; }
+
+  .btn-guardar {
+    margin-top: 20px;
+    background: #39A900;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 22px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-guardar:hover { background: #2f8a00; }
+  .btn-guardar:disabled { opacity: .6; cursor: not-allowed; }
+
+  .alerta { border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; font-size: .88rem; font-weight: 500; }
+  .alerta-danger { background: #fee2e2; color: #b91c1c; }
+  .alerta-success { background: #dcfce7; color: #15803d; }
+
+  .d-none { display: none !important; }
+</style>

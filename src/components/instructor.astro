@@ -11,23 +11,15 @@ const fecha = new Date().toLocaleDateString("es-CO", {
   year: "numeric",
 });
 
-const stats = [
-  { icon: "bi-people-fill", valor: 84, label: "Total activos", titulo: "Aprendices" },
-  { icon: "bi-calendar3", valor: 6, label: "Clases programadas", titulo: "Horarios" },
-  { icon: "bi-journal-bookmark-fill", valor: 3, label: "A tu cargo", titulo: "Fichas" },
+let stats = [
+  { icon: "bi-people-fill", valor: 0, label: "Total activos", titulo: "Aprendices" },
+  { icon: "bi-calendar3", valor: 0, label: "Clases programadas", titulo: "Horarios" },
+  { icon: "bi-journal-bookmark-fill", valor: 0, label: "A tu cargo", titulo: "Fichas" },
 ];
 
-const fichas = [
-  { icon: "bi-laptop", numero: "ADSO - 2876543", nombre: "Análisis y Desarrollo de Sistemas de Información", aprendices: 28, estado: "ACTIVA" },
-  { icon: "bi-code-slash", numero: "ADSO - 2876544", nombre: "Análisis y Desarrollo de Sistemas de Información", aprendices: 31, estado: "ACTIVA" },
-  { icon: "bi-diagram-3-fill", numero: "SOFTWARE - 3001123", nombre: "Desarrollo de Software", aprendices: 25, estado: "ACTIVA" },
-];
+let fichas: any[] = [];
+let clases: any[] = [];
 
-const clases = [
-  { hora: "08:00", horaFin: "08:50", ficha: "ADSO - 2876543", asignatura: "Análisis y Desarrollo de Sistemas", aula: "Aula 302", aprendices: 28 },
-  { hora: "10:00", horaFin: "10:50", ficha: "SOFTWARE - 3001123", asignatura: "Desarrollo de Software", aula: "Aula 205", aprendices: 25 },
-  { hora: "14:00", horaFin: "14:50", ficha: "ADSO - 2876544", asignatura: "Análisis y Desarrollo de Sistemas", aula: "Aula 301", aprendices: 31 },
-];
 
 const acciones = [
   { icon: "bi-person-check-fill", texto: "Registrar asistencia" },

@@ -11,7 +11,7 @@ const instructor = {
 
 const links = [
   { text: "Dashboard", href: "/instructor", icon: "bi-house-door-fill" },
-  { text: "Fichas", href: "/instructor/fichas", icon: "bi-people-fill" },
+  { text: "Ficha", href: "/instructor/ficha", icon: "bi-people-fill" },
   { text: "Horario", href: "/instructor/horario", icon: "bi-calendar3" },
   { text: "Asistencia", href: "/instructor/asistencia", icon: "bi-clipboard2-check-fill" },
   { text: "Aprendices", href: "/instructor/aprendices", icon: "bi-people-fill" },
@@ -25,11 +25,12 @@ const links = [
 </Layout>
 
 <script>
-  import { obtenerSesion } from "../lib/auth.ts";
+import { obtenerSesion } from "../lib/auth.ts";
 
-  const sesion = obtenerSesion();
-  if (sesion) {
-    const el = document.getElementById("nombre-instructor");
-    if (el) el.textContent = `${sesion.usuario.nombre} ${sesion.usuario.apellido}`;
-  }
+const sesion = obtenerSesion();
+
+if (sesion) {
+  const el = document.getElementById("nombre-instructor");
+  if (el) el.textContent = `${sesion.usuario.nombre} ${sesion.usuario.apellido}`;
+}
 </script>

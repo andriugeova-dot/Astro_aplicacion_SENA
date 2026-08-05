@@ -1,0 +1,110 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import AdminTablaCRUD from "../../components/admin/AdminTablaCRUD.astro";
+
+const links = [
+  { text: "Dashboard", href: "/instructor", icon: "bi-house-door-fill" },
+  { text: "Ficha", href: "/instructor/ficha", icon: "bi-people-fill" },
+  { text: "Horario", href: "/instructor/horario", icon: "bi-calendar3" },
+  { text: "Asistencia", href: "/instructor/asistencia", icon: "bi-clipboard2-check-fill" },
+  { text: "Aprendices", href: "/instructor/aprendices", icon: "bi-people-fill" },
+];
+---
+
+<!-- rolesPermitidos={[2]}: solo instructores. Reutiliza el mismo AdminTablaCRUD
+     del panel admin, pero soloLectura=true (sin botones editar/eliminar/nuevo)
+     y con autoIniciar=false porque el endpoint depende de qué ficha elija. -->
+<Layout title="Mis Aprendices | Instructor" links={links} subtitulo="Instructor" rolesPermitidos={[2]}>
+  <div class="selector-ficha">
+    <label for="select-ficha">Ficha</label>
+    <select id="select-ficha"></select>
+    <span id="mensaje-sin-fichas" class="d-none">Todavía no tienes fichas asignadas. Pide a un admin que te asigne una.</span>
+  </div>
+
+  <AdminTablaCRUD
+    titulo="Aprendices de mi ficha"
+    descripcion="Solo puedes consultarlos; para editar sus datos contacta a un administrador."
+    entidadSingular="Aprendiz"
+    endpoint="/aprendiz/ficha/0"
+    idField="idAprendiz"
+    soloLectura={true}
+    autoIniciar={false}
+    columnas={[
+      { field: "idAprendiz", headerName: "ID", minWidth: 90 },
+      { field: "documento", headerName: "Documento", minWidth: 140 },
+      { field: "nombre", headerName: "Nombre" },
+      { field: "apellido", headerName: "Apellido" },
+      { field: "correo", headerName: "Correo", minWidth: 200 },
+      { field: "telefono", headerName: "Teléfono", minWidth: 140 },
+    ]}
+    camposFormulario={[]}
+  />
+</Layout>
+
+<script>
+  import { obtenerSesion, fetchAutenticado } from "../../lib/auth.ts";
+  import { iniciarCRUD, recargarConEndpoint } from "../../scripts/agGridCrud.ts";
+
+  const API_URL = import.meta.env.PUBLIC_API_URL ?? "http://localhost:8002";
+  const sesion = obtenerSesion();
+  const select = document.getElementById("select-ficha") as HTMLSelectElement;
+  const mensajeSinFichas = document.getElementById("mensaje-sin-fichas")!;
+
+  let gridIniciado = false;
+
+  async function cargarAprendicesDeFicha(idFicha: string) {
+    const endpoint = `/aprendiz/ficha/${idFicha}`;
+    if (!gridIniciado) {
+      const config = (window as unknown as { __crudConfig?: Record<string, unknown> }).__crudConfig;
+      if (!config) return;
+      await iniciarCRUD({ ...config, endpoint } as never);
+      gridIniciado = true;
+    } else {
+      await recargarConEndpoint(endpoint);
+    }
+  }
+
+  (async () => {
+    if (!sesion) return;
+
+    const respuesta = await fetchAutenticado(`${API_URL}/instructor/fichas/${sesion.usuario.idUsuario}`);
+    const fichas: Array<{ idFicha: number; numeroFicha: string; jornada: string }> = respuesta.ok ? await respuesta.json() : [];
+
+    if (fichas.length === 0) {
+      mensajeSinFichas.classList.remove("d-none");
+      select.classList.add("d-none");
+      return;
+    }
+
+    select.innerHTML = fichas
+      .map((f) => `<option value="${f.idFicha}">${f.numeroFicha} — ${f.jornada}</option>`)
+      .join("");
+
+    await cargarAprendicesDeFicha(String(fichas[0].idFicha));
+
+    select.addEventListener("change", () => cargarAprendicesDeFicha(select.value));
+  })();
+</script>
+
+<style>
+  .selector-ficha {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 35px 0;
+    font-size: 0.9rem;
+    color: #374151;
+  }
+
+  .selector-ficha select {
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-family: inherit;
+    font-size: 0.9rem;
+  }
+
+  .d-none {
+    display: none !important;
+  }
+</style>

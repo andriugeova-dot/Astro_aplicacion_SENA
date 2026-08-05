@@ -1,17 +1,7 @@
-// src/scripts/agGridCrud.ts
-//
-// Motor genérico de CRUD sobre AgGrid, reutilizado por todas las páginas
-// /admin/* (usuarios, fichas, programas, asignaturas, horarios, roles).
-//
-// Cada página solo declara su configuración (endpoint, columnas, campos del
-// formulario) y llama a `iniciarCRUD(config)`; toda la lógica de carga,
-// creación, edición, borrado y exportación vive aquí una sola vez.
 
 import { fetchAutenticado, NOMBRES_ROL } from "../lib/auth";
 
-// AgGrid se carga desde CDN como script clásico (ver AdminTablaCRUD.astro),
-// así que se expone como `window.agGrid`. No hay paquete npm confiable
-// instalado en este proyecto (ver nota en el README de admin).
+
 declare global {
   interface Window {
     agGrid: {
@@ -73,6 +63,7 @@ export interface ConfigCRUD {
   entidadSingular: string;
   columnas: ColumnaGrid[];
   camposFormulario: CampoFormulario[];
+  soloLectura?: boolean;
 }
 
 // deno-lint-ignore no-explicit-any
@@ -146,40 +137,62 @@ function construirColumnas() {
     valueFormatter: (params: any) => formatearValor(columna.field, params.value),
   }));
 
-  columnasGrid.push({
-    field: "__acciones",
-    headerName: "Acciones",
-    editable: false,
-    filter: false,
-    sortable: false,
-    enableRowGroup: false,
-    enableValue: false,
-    minWidth: 120,
-    pinned: "right",
-    // deno-lint-ignore no-explicit-any
-    cellRenderer: (params: any) => {
-      const contenedor = document.createElement("div");
-      contenedor.className = "acciones-celda";
+  if (!configActual.soloLectura) {
 
-      const btnEditar = document.createElement("button");
-      btnEditar.type = "button";
-      btnEditar.className = "btn-accion btn-editar";
-      btnEditar.title = "Editar";
-      btnEditar.innerHTML = '<i class="bi bi-pencil-fill"></i>';
-      btnEditar.addEventListener("click", () => abrirModal(params.data));
+    columnasGrid.push({
 
-      const btnEliminar = document.createElement("button");
-      btnEliminar.type = "button";
-      btnEliminar.className = "btn-accion btn-eliminar";
-      btnEliminar.title = "Eliminar";
-      btnEliminar.innerHTML = '<i class="bi bi-trash-fill"></i>';
-      btnEliminar.addEventListener("click", () => eliminarRegistro(params.data));
+        field: "__acciones",
 
-      contenedor.append(btnEditar, btnEliminar);
-      return contenedor;
-    },
-  });
+        headerName: "Acciones",
 
+        editable: false,
+        filter: false,
+        sortable: false,
+        enableRowGroup: false,
+        enableValue: false,
+        minWidth: 120,
+        pinned: "right",
+
+        cellRenderer: (params: any) => {
+
+            const contenedor = document.createElement("div");
+
+            contenedor.className = "acciones-celda";
+
+            const btnEditar = document.createElement("button");
+
+            btnEditar.type = "button";
+
+            btnEditar.className = "btn-accion btn-editar";
+
+            btnEditar.innerHTML = '<i class="bi bi-pencil-fill"></i>';
+
+            btnEditar.addEventListener("click", () => abrirModal(params.data));
+
+            const btnEliminar = document.createElement("button");
+
+            btnEliminar.type = "button";
+
+            btnEliminar.className = "btn-accion btn-eliminar";
+
+            btnEliminar.innerHTML = '<i class="bi bi-trash-fill"></i>';
+
+            btnEliminar.addEventListener("click", () => eliminarRegistro(params.data));
+
+            contenedor.append(btnEditar, btnEliminar);
+
+            return contenedor;
+
+        }
+
+    });
+
+  }
+
+  // BUG CRÍTICO (ya corregido): a esta función le faltaba este "return".
+  // Sin él, columnDefs quedaba "undefined" y ag-Grid nunca sabía qué
+  // columnas pintar, así que ninguna tabla del admin mostraba datos
+  // aunque el backend respondiera bien.
   return columnasGrid;
 }
 
@@ -368,6 +381,17 @@ function exportarExcel() {
   } else {
     mostrarAlerta("La exportación a Excel requiere el módulo ag-grid-enterprise (no se pudo cargar).");
   }
+}
+
+/**
+ * Cambia el endpoint del grid ya inicializado y recarga los datos.
+ * Pensado para vistas con un selector (ej. "elige tu ficha") donde el
+ * endpoint final no se conoce hasta que el usuario elige una opción.
+ */
+export async function recargarConEndpoint(nuevoEndpoint: string) {
+  if (!configActual) return;
+  configActual.endpoint = nuevoEndpoint;
+  await cargarDatos();
 }
 
 export async function iniciarCRUD(config: ConfigCRUD) {

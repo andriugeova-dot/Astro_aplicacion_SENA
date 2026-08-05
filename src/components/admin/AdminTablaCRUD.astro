@@ -40,8 +40,9 @@ interface Props {
   idField: string;
   columnas: ColumnaGrid[];
   camposFormulario: CampoFormulario[];
+  soloLectura?: boolean;
+  autoIniciar?: boolean;
 }
-
 const {
   titulo,
   descripcion,
@@ -50,6 +51,8 @@ const {
   idField,
   columnas,
   camposFormulario,
+  soloLectura = false,
+  autoIniciar = true,
 } = Astro.props;
 
 const config = {
@@ -59,8 +62,8 @@ const config = {
   entidadSingular,
   columnas,
   camposFormulario,
+  soloLectura,
 };
-
 const AG_GRID_VERSION = "32.2.1";
 ---
 
@@ -76,15 +79,32 @@ const AG_GRID_VERSION = "32.2.1";
       <p>{descripcion}</p>
     </div>
     <div class="admin-crud-acciones">
+
       <button type="button" id="btn-exportar-csv" class="btn-secundario">
-        <i class="bi bi-filetype-csv"></i> CSV
+        <i class="bi bi-filetype-csv"></i>
+        CSV
       </button>
+
       <button type="button" id="btn-exportar-excel" class="btn-secundario">
-        <i class="bi bi-file-earmark-excel"></i> Excel
+        <i class="bi bi-file-earmark-excel"></i>
+        Excel
       </button>
-      <button type="button" id="btn-nuevo" class="btn-primario">
-        <i class="bi bi-plus-lg"></i> Nuevo {entidadSingular}
-      </button>
+
+      {
+        !soloLectura && (
+          <button
+            type="button"
+            id="btn-nuevo"
+            class="btn-primario">
+
+            <i class="bi bi-plus-lg"></i>
+
+            Nuevo {entidadSingular}
+
+          </button>
+        )
+      }
+
     </div>
   </div>
 
@@ -112,15 +132,17 @@ const AG_GRID_VERSION = "32.2.1";
   </div>
 </div>
 
-<script type="module" define:vars={{ config }}>
+<script type="module" define:vars={{ config, autoIniciar }}>
   window.__crudConfig = config;
+  window.__crudAutoIniciar = autoIniciar;
 </script>
 
 <script>
   import { iniciarCRUD } from "../../scripts/agGridCrud";
 
   const config = (window as unknown as { __crudConfig?: unknown }).__crudConfig;
-  if (config) {
+  const autoIniciar = (window as unknown as { __crudAutoIniciar?: boolean }).__crudAutoIniciar;
+  if (config && autoIniciar) {
     // deno-lint-ignore no-explicit-any
     iniciarCRUD(config as any);
   }
