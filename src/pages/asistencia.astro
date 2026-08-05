@@ -1,0 +1,71 @@
+---
+import Layout from "../layouts/Layout.astro";
+import AdminTablaCRUD from "../components/admin/AdminTablaCRUD.astro";
+
+const links = [
+  { text: "Dashboard", href: "/usuario", icon: "bi-house-door-fill" },
+  { text: "Horario", href: "/horario", icon: "bi-calendar3" },
+  { text: "Asignaturas", href: "/asignaturas", icon: "bi-journal-bookmark-fill" },
+  { text: "Asistencia", href: "/asistencia", icon: "bi-clipboard2-check-fill" },
+];
+---
+
+<Layout title="Mi Asistencia" links={links} subtitulo="Aprendiz" rolesPermitidos={[1]}>
+  <p id="mensaje-sin-ficha" class="mensaje d-none">
+    Todavía no tienes un perfil de aprendiz asociado. Contacta a un administrador.
+  </p>
+
+  <AdminTablaCRUD
+    titulo="Mi asistencia"
+    descripcion="Historial de asistencia registrado por tus instructores."
+    entidadSingular="Registro"
+    endpoint="/asistencia/aprendiz/0"
+    idField="idAsistencia"
+    soloLectura={true}
+    autoIniciar={false}
+    columnas={[
+      { field: "fecha", headerName: "Fecha", minWidth: 130 },
+      { field: "estado", headerName: "Estado", minWidth: 130 },
+      { field: "horaEntrada", headerName: "Hora entrada", minWidth: 140 },
+      { field: "horaSalida", headerName: "Hora salida", minWidth: 140 },
+      { field: "observacion", headerName: "Observación", minWidth: 200 },
+    ]}
+    camposFormulario={[]}
+  />
+</Layout>
+
+<script>
+  import { obtenerSesion, fetchAutenticado } from "../lib/auth.ts";
+  import { iniciarCRUD } from "../scripts/agGridCrud.ts";
+
+  const API_URL = import.meta.env.PUBLIC_API_URL ?? "http://localhost:8002";
+  const sesion = obtenerSesion();
+  const mensajeSinFicha = document.getElementById("mensaje-sin-ficha")!;
+
+  (async () => {
+    if (!sesion) return;
+
+    const respuesta = await fetchAutenticado(`${API_URL}/aprendiz/miperfil`);
+    if (!respuesta.ok) {
+      mensajeSinFicha.classList.remove("d-none");
+      return;
+    }
+
+    const perfil = await respuesta.json();
+    const config = (window as unknown as { __crudConfig?: Record<string, unknown> }).__crudConfig;
+    if (!config) return;
+    await iniciarCRUD({ ...config, endpoint: `/asistencia/aprendiz/${perfil.idAprendiz}` } as never);
+  })();
+</script>
+
+<style>
+  .mensaje {
+    margin: 20px 35px 0;
+    background: #fef3c7;
+    color: #92400e;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.88rem;
+  }
+  .d-none { display: none !important; }
+</style>

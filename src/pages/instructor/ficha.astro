@@ -1,0 +1,127 @@
+---
+import Layout from "../../layouts/Layout.astro";
+
+const links = [
+  { text: "Dashboard", href: "/instructor", icon: "bi-house-door-fill" },
+  { text: "Fichas", href: "/instructor/ficha", icon: "bi-people-fill" },
+  { text: "Horario", href: "/instructor/horario", icon: "bi-calendar3" },
+  { text: "Asistencia", href: "/instructor/asistencia", icon: "bi-clipboard2-check-fill" },
+  { text: "Aprendices", href: "/instructor/aprendices", icon: "bi-people-fill" },
+];
+---
+
+<Layout
+    title="Mis Fichas"
+    links={links}
+    subtitulo="Instructor">
+
+<div class="contenedor">
+
+    <h2>Mis Fichas</h2>
+
+    <table id="tablaFichas">
+
+        <thead>
+
+            <tr>
+                <th>Ficha</th>
+                <th>Programa</th>
+                <th>Jornada</th>
+                <th>Aprendices</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        </tbody>
+
+    </table>
+
+</div>
+
+</Layout>
+
+<script type="module">
+
+import { obtenerSesion, fetchAutenticado } from "../../lib/auth";
+
+const sesion = obtenerSesion();
+
+if(!sesion){
+
+    window.location.href="/login";
+
+}
+
+const respuesta = await fetchAutenticado(
+
+`${import.meta.env.PUBLIC_API_URL ?? "http://localhost:8002"}/instructor/fichas/${sesion.usuario.idUsuario}`
+
+);
+
+const fichas = await respuesta.json();
+
+const tbody=document.querySelector("#tablaFichas tbody");
+
+tbody.innerHTML="";
+
+fichas.forEach(ficha=>{
+
+tbody.innerHTML+=`
+
+<tr>
+
+<td>${ficha.numeroFicha}</td>
+
+<td>${ficha.nombrePrograma}</td>
+
+<td>${ficha.jornada}</td>
+
+<td>${ficha.totalAprendices}</td>
+
+</tr>
+
+`;
+
+});
+
+</script>
+
+<style>
+
+.contenedor{
+
+padding:30px;
+
+}
+
+table{
+
+width:100%;
+
+border-collapse:collapse;
+
+background:white;
+
+}
+
+th,td{
+
+padding:15px;
+
+border-bottom:1px solid #ddd;
+
+text-align:left;
+
+}
+
+th{
+
+background:#39A900;
+
+color:white;
+
+}
+
+</style>

@@ -1,0 +1,151 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const links = [
+  { text: "Dashboard", href: "/usuario", icon: "bi-house-door-fill" },
+  { text: "Horario", href: "/horario", icon: "bi-calendar3" },
+  { text: "Asignaturas", href: "/asignaturas", icon: "bi-journal-bookmark-fill" },
+  { text: "Asistencia", href: "/asistencia", icon: "bi-clipboard2-check-fill" },
+];
+
+const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+---
+
+<!-- Vista semanal (no ag-grid): una columna por día, con las asignaturas
+     de ese día ordenadas por hora. Los datos salen del mismo endpoint
+     /hfa/ficha/:idFicha que usa /asignaturas y el instructor. -->
+<Layout title="Mi Horario" links={links} subtitulo="Aprendiz" rolesPermitidos={[1]}>
+  <div class="contenedor">
+    <h2>Mi horario semanal</h2>
+
+    <p id="mensaje-sin-ficha" class="mensaje d-none">
+      Todavía no tienes una ficha asignada. Cuando un administrador te la asigne, aquí verás tu horario.
+    </p>
+
+    <div id="semana" class="semana d-none">
+      {DIAS.map((dia) => (
+        <div class="columna-dia" data-dia={dia}>
+          <h3>{dia}</h3>
+          <div class="bloques" data-dia-bloques={dia}>
+            <p class="vacio">Sin clases</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { obtenerSesion, fetchAutenticado } from "../lib/auth.ts";
+
+  const API_URL = import.meta.env.PUBLIC_API_URL ?? "http://localhost:8002";
+  const sesion = obtenerSesion();
+  const mensajeSinFicha = document.getElementById("mensaje-sin-ficha")!;
+  const semana = document.getElementById("semana")!;
+
+  interface Bloque {
+    idHFA: number;
+    diaSemana: string;
+    horaInicio: string;
+    horaFin: string;
+    nombreAsignatura: string;
+  }
+
+  (async () => {
+    if (!sesion) return;
+
+    const respuestaPerfil = await fetchAutenticado(`${API_URL}/aprendiz/miperfil`);
+    if (!respuestaPerfil.ok) {
+      mensajeSinFicha.classList.remove("d-none");
+      return;
+    }
+    const perfil = await respuestaPerfil.json();
+    if (!perfil.idFicha) {
+      mensajeSinFicha.classList.remove("d-none");
+      return;
+    }
+
+    const respuesta = await fetchAutenticado(`${API_URL}/hfa/ficha/${perfil.idFicha}`);
+    const bloques: Bloque[] = respuesta.ok ? await respuesta.json() : [];
+
+    semana.classList.remove("d-none");
+
+    for (const bloque of bloques) {
+      const contenedorDia = semana.querySelector(`[data-dia-bloques="${bloque.diaSemana}"]`);
+      if (!contenedorDia) continue; // día no contemplado (ej. Domingo)
+
+      const vacio = contenedorDia.querySelector(".vacio");
+      vacio?.remove();
+
+      const tarjeta = document.createElement("div");
+      tarjeta.className = "bloque";
+      tarjeta.innerHTML = `
+        <strong>${bloque.nombreAsignatura}</strong>
+        <span>${bloque.horaInicio} – ${bloque.horaFin}</span>
+      `;
+      contenedorDia.appendChild(tarjeta);
+    }
+  })();
+</script>
+
+<style>
+  .contenedor { padding: 30px 35px; max-width: 1400px; margin: 0 auto; }
+  h2 { color: #1f2937; margin-bottom: 18px; }
+
+  .mensaje {
+    background: #fef3c7;
+    color: #92400e;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.88rem;
+  }
+
+  .semana {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 14px;
+  }
+
+  .columna-dia {
+    background: white;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,.04);
+    min-height: 220px;
+  }
+
+  .columna-dia h3 {
+    font-size: 0.95rem;
+    color: #39A900;
+    margin: 0 0 12px;
+    text-align: center;
+    border-bottom: 2px solid #dcfce7;
+    padding-bottom: 8px;
+  }
+
+  .bloques { display: flex; flex-direction: column; gap: 10px; }
+
+  .bloque {
+    background: #f0fdf4;
+    border-left: 3px solid #39A900;
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .bloque strong { font-size: 0.82rem; color: #1f2937; }
+  .bloque span { font-size: 0.75rem; color: #6b7280; }
+
+  .vacio { font-size: 0.78rem; color: #9ca3af; text-align: center; margin-top: 20px; }
+
+  @media (max-width: 1100px) {
+    .semana { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 700px) {
+    .semana { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .d-none { display: none !important; }
+</style>
